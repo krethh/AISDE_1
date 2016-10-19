@@ -20,17 +20,13 @@ namespace AISDE_1
         {
             get
             {
+                /// Jeżeli koszt = 0 (czyli domyślny) to wylicz koszt na podstawie wierzchołków. W przeciwnym wypadku zwróć wcześniej wyliczony koszt.
                 return (_totalCost == 0 ? _totalCost = CalculateCost() : _totalCost);
             }
             set
             {
                 _totalCost = value;
             }
-        }
-
-        public int CompareTo(GraphPath other)
-        {
-            throw new NotImplementedException();
         }
 
         public override string ToString()
@@ -43,6 +39,9 @@ namespace AISDE_1
             return toReturn;
         }
 
+        /// <summary>
+        /// Ścieżka jest równa ścieżce, kiedy zawiera te same wierzchołki w tej samej kolejności i ma ten sam koszt.
+        /// </summary>
         public override bool Equals(object obj)
         {
             var other = obj as GraphPath;
