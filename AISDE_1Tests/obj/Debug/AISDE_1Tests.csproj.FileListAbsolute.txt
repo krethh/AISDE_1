@@ -1,0 +1,8 @@
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1Tests\bin\Debug\AISDE_1Tests.dll
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1Tests\bin\Debug\AISDE_1Tests.pdb
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1Tests\bin\Debug\AISDE_1.exe
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1Tests\bin\Debug\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1Tests\bin\Debug\AISDE_1.pdb
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1Tests\obj\Debug\AISDE_1Tests.csprojResolveAssemblyReference.cache
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1Tests\obj\Debug\AISDE_1Tests.dll
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1Tests\obj\Debug\AISDE_1Tests.pdb

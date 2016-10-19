@@ -1,0 +1,16 @@
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\bin\Debug\AISDE_1.exe.config
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\bin\Debug\AISDE_1.exe
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\bin\Debug\AISDE_1.pdb
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\obj\Debug\AISDE_1.csprojResolveAssemblyReference.cache
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\obj\Debug\MainWindow.g.cs
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\obj\Debug\App.g.cs
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\obj\Debug\AISDE_1_MarkupCompile.cache
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\obj\Debug\AISDE_1_MarkupCompile.lref
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\obj\Debug\MainWindow.baml
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\obj\Debug\AISDE_1.g.resources
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\obj\Debug\AISDE_1.Properties.Resources.resources
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\obj\Debug\AISDE_1.csproj.GenerateResource.Cache
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\obj\Debug\AISDE_1.exe
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\obj\Debug\AISDE_1.pdb
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\obj\Debug\GraphDisplayWindow.g.cs
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\obj\Debug\GraphDisplayWindow.baml
