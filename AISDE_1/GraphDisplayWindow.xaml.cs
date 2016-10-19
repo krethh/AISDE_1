@@ -19,26 +19,20 @@ namespace AISDE_1
     /// </summary>
     public partial class GraphDisplayWindow : Window
     {
+        public Graph graph { get; set; }
+        public Dictionary<GraphVertex, Ellipse> VertexToShape { get; set; } // mapuje wierzchołki do kółek na ekranie
+
         public GraphDisplayWindow()
         {
             InitializeComponent();
+            VertexToShape = new Dictionary<GraphVertex, Ellipse>(); 
+        }                  
 
-            System.IO.StreamReader file = new System.IO.StreamReader("C:\\Users\\Paweł Kulig\\Desktop\\test.txt");
-            List<string> fileLines = new List<string>();
-            var line = "";
-            while((line = file.ReadLine()) != null)
-                fileLines.Add(line);
-            file.Close();
+        public void DisplayGraph()
+        {
+            graph.SetVertexDisplayCoordinates(768, 1200);
 
-            Graph testGraph = Graph.ReadGraph(fileLines);
-
-            GraphPath path = testGraph.Dijkstra(testGraph.Vertices[0], testGraph.Vertices[4]);
-
-            Console.WriteLine(path);
-
-            testGraph.SetVertexDisplayCoordinates(768, 1200);
-
-            foreach (var vertex in testGraph.Vertices)
+            foreach (var vertex in graph.Vertices)
             {
                 foreach (var neighbor in vertex.GetNeighbors())
                 {
@@ -56,7 +50,7 @@ namespace AISDE_1
                     graphGrid.Children.Add(edge);
                 }
 
-                foreach (var v in testGraph.Vertices)
+                foreach (var v in graph.Vertices)
                 {
                     var ellipse = new Ellipse();
 
@@ -72,10 +66,16 @@ namespace AISDE_1
                     ellipse.Margin = new Thickness(v.Coordinates.X, v.Coordinates.Y, 0, 0);
 
                     graphGrid.Children.Add(ellipse);
-                }               
-            }    
-        }                  
+                    VertexToShape.Add(v, ellipse);
+                }
+            }
 
         }
+
+        public void ColorPathRed(GraphPath path)
+        {
+            path.ForEach(v => ((Ellipse)VertexToShape[v]).Stroke = System.Windows.Media.Brushes.Red);
+        }
+    }
     }
 

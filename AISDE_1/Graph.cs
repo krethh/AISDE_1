@@ -209,10 +209,12 @@ namespace AISDE_1
                 coordinates[i].X = center.Y + radius * Math.Sin(i * rotationAngle);
             }
             for (int i = 0; i < Vertices.Count; i++)
+            {
+                if (Vertices[i].Coordinates.X != 0 || Vertices[i].Coordinates.Y != 0) continue; //jeżeli wcześniej przypisano wierzchołkom współrzędne to nie przypisuj ich znowu
                 Vertices[i].Coordinates = coordinates[i];
+            }
 
-        }
-        
+        }     
 
         /// <summary>
         /// Wylicza wszystke najkrótsze ścieżki pomiędzy wierzchołkami grafu i zapisuje je do słownika FloydPaths.
@@ -308,9 +310,16 @@ namespace AISDE_1
         /// <summary>
         /// Wczytuje graf z pliku tekstowego.
         /// </summary>
-        /// <param name="fileLines">Lista linii pliku wejściowego.</param>
-        public static Graph ReadGraph(List<String> fileLines)
+        /// <param name="fileLines">Ścieżka do pliku wejściwego.</param>
+        public static Graph ReadGraph(string path)
         {
+            System.IO.StreamReader file = new System.IO.StreamReader("C:\\Users\\Paweł Kulig\\Desktop\\test.txt");
+            List<string> fileLines = new List<string>();
+            var line = "";
+            while ((line = file.ReadLine()) != null)
+                fileLines.Add(line);
+            file.Close();
+
             fileLines = fileLines.FindAll(s => s[0] != '#'); // wywala linie, które zawierają komentarz
 
             Graph graph = new Graph();

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Forms;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
@@ -25,12 +26,24 @@ namespace AISDE_1
         public MainWindow()
         {
             InitializeComponent();
-            GraphDisplayWindow graphDisplayWindow = new GraphDisplayWindow();
-            graphDisplayWindow.Show();
+        }
 
-            Close();
+        private void OpenFileDialogButton_Click(object sender, RoutedEventArgs e)
+        {
+            string path = "";
+            var dialog = new System.Windows.Forms.OpenFileDialog();
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                path = dialog.FileName.ToString();
+            }
+            TextFileDirectoryTextBox.Text = path;
+        }
 
-
+        private void LoadButton_Click(object sender, RoutedEventArgs e)
+        {
+            GraphDisplayWindow graphWindow = new GraphDisplayWindow { graph = Graph.ReadGraph(TextFileDirectoryTextBox.Text) };
+            graphWindow.DisplayGraph();
+            graphWindow.Show();
         }
     }
 }

@@ -7,7 +7,11 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
     <Grid x:Name="basicGrid">
-        <Grid HorizontalAlignment="Left" Height="309" VerticalAlignment="Top" Width="517"/>
+        <Grid HorizontalAlignment="Left" Height="309" VerticalAlignment="Top" Width="517">
+            <TextBox x:Name="TextFileDirectoryTextBox" HorizontalAlignment="Left" Height="23" Margin="66,57,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="292"/>
+            <Button x:Name="LoadButton" Content="Wczytaj" HorizontalAlignment="Left" Margin="373,57,0,0" VerticalAlignment="Top" Width="75" Height="23" Click="LoadButton_Click"/>
+            <Button x:Name="OpenFileDialogButton" Content="..." HorizontalAlignment="Left" Margin="30,57,0,0" VerticalAlignment="Top" Width="25" Height="23" RenderTransformOrigin="0.32,0.464" Click="OpenFileDialogButton_Click"/>
+        </Grid>
 
     </Grid>
 </Window>
