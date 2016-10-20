@@ -21,11 +21,17 @@ namespace AISDE_1
     {
         public Graph graph { get; set; }
         public Dictionary<GraphVertex, Ellipse> VertexToShape { get; set; } // mapuje wierzchołki do kółek na ekranie
+        public Dictionary<Ellipse, GraphVertex> ShapeToVertex { get; set; } // robi na odwrót niż powyżej.
+        public Dictionary<Edge, Line> EdgeToShape { get; set; } // mapuje krawędzie do kresek na ekranie
+        private bool dragged;
+        private Ellipse EllipseMoved;
 
         public GraphDisplayWindow()
         {
             InitializeComponent();
-            VertexToShape = new Dictionary<GraphVertex, Ellipse>(); 
+            VertexToShape = new Dictionary<GraphVertex, Ellipse>();
+            ShapeToVertex = new Dictionary<Ellipse, GraphVertex>();
+            EdgeToShape = new Dictionary<Edge, Line>();
         }                  
 
         public void DisplayGraph()
@@ -47,35 +53,109 @@ namespace AISDE_1
                     edge.Y2 = neighbor.Coordinates.Y + 6.25;
                     edge.StrokeThickness = 2;
 
-                    graphGrid.Children.Add(edge);
-                }
-
-                foreach (var v in graph.Vertices)
-                {
-                    var ellipse = new Ellipse();
-
-                    ellipse.Stroke = System.Windows.Media.Brushes.Black;
-                    ellipse.StrokeThickness = 1;
-                    ellipse.Fill = System.Windows.Media.Brushes.DarkBlue;
-                    ellipse.HorizontalAlignment = HorizontalAlignment.Left;
-                    ellipse.VerticalAlignment = VerticalAlignment.Top;
-
-                    ellipse.Width = 20;
-                    ellipse.Height = 20;
-
-                    ellipse.Margin = new Thickness(v.Coordinates.X, v.Coordinates.Y, 0, 0);
-
-                    graphGrid.Children.Add(ellipse);
-                    VertexToShape.Add(v, ellipse);
+                    canvas.Children.Add(edge);
+                    EdgeToShape.Add(toDraw, edge);
                 }
             }
 
+            foreach (var v in graph.Vertices)
+            { 
+                var ellipse = new Ellipse();
+
+                ellipse.MouseLeftButtonDown += ellipse_MouseDown;
+
+                ellipse.Stroke = System.Windows.Media.Brushes.Black;
+                ellipse.StrokeThickness = 1;
+                ellipse.Fill = System.Windows.Media.Brushes.DarkBlue;
+                ellipse.HorizontalAlignment = HorizontalAlignment.Left;
+                ellipse.VerticalAlignment = VerticalAlignment.Top;
+
+                ellipse.Width = 20;
+                ellipse.Height = 20;
+
+                Canvas.SetLeft(ellipse, v.Coordinates.X);
+                Canvas.SetTop(ellipse, v.Coordinates.Y);
+
+                canvas.Children.Add(ellipse);
+                VertexToShape.Add(v, ellipse);
+                ShapeToVertex.Add(ellipse, v);
+                }          
         }
 
-        public void ColorPathRed(GraphPath path)
+        public void ColorPath(GraphPath path)
         {
-            path.ForEach(v => ((Ellipse)VertexToShape[v]).Stroke = System.Windows.Media.Brushes.Red);
+            path.ForEach(v => ((Ellipse)VertexToShape[v]).Fill = System.Windows.Media.Brushes.Red);
+            path.GetEdges().ForEach(e => EdgeToShape[e].Stroke = Brushes.Green);
+        }
+
+        private void ellipse_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                EllipseMoved = sender as Ellipse;
+                dragged = true;
+            }
+        }
+
+        private void canvas_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (dragged && Mouse.LeftButton == MouseButtonState.Pressed && EllipseMoved != null)
+            {
+                var pos = Mouse.GetPosition(this);
+                Canvas.SetLeft(EllipseMoved, pos.X - 10);
+                Canvas.SetTop(EllipseMoved, pos.Y - 10); // - 10 żeby kursor łapał na środku okręgu a nie na lewym górnym czubku
+
+                var lines = GetLinesOutgoingOfShape(EllipseMoved);
+                foreach (var line in lines)
+                {
+                    line.X1 = pos.X;
+                    line.Y1 = pos.Y;
+                }
+                lines = GetLinesIngoingToShape(EllipseMoved);
+                foreach (var line in lines)
+                {
+                    line.X2 = pos.X;
+                    line.Y2 = pos.Y;
+                }
+            }
+        }
+
+        private List<Line> GetLinesOutgoingOfShape(Ellipse ellipse)
+        {
+            List<Line> lines = new List<Line>();
+            var vertex = ShapeToVertex[ellipse];
+
+            foreach(var v in vertex.GetNeighbors())
+            {
+                var line = vertex.GetEdge(v);
+                lines.Add(EdgeToShape[line]);
+            }
+
+            return lines;
+        }
+
+        private List<Line> GetLinesIngoingToShape(Ellipse ellipse)
+        {
+            List<Line> lines = new List<Line>();
+            var vertex = ShapeToVertex[ellipse];
+
+            foreach (var v in graph.Vertices)
+            {
+                if (v.HasEdgeTo(vertex))
+                {
+                    var line = v.GetEdge(vertex);
+                    lines.Add(EdgeToShape[line]);
+                }
+            }
+
+            return lines;
+        }
+
+        private void canvas_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            dragged = false;
+            EllipseMoved = null;
         }
     }
-    }
+}
 

@@ -7,7 +7,6 @@
         mc:Ignorable="d"
         Title="GraphDisplayWindow" Height="768" Width="1200">
     <Grid x:Name="graphGrid" HorizontalAlignment="Left" Width="1200" Height="768" VerticalAlignment="Top">
-        
-
+        <Canvas x:Name="canvas" HorizontalAlignment="Left" Height="724" VerticalAlignment="Top" Width="1190" MouseMove="canvas_MouseMove" MouseUp="canvas_MouseUp"/>
     </Grid>
 </Window>

@@ -29,6 +29,25 @@ namespace AISDE_1
             }
         }
 
+        /// <summary>
+        /// Zwraca wszystkie krawędzie należące do ścieżki
+        /// </summary>
+        /// <returns></returns>
+        public List<Edge> GetEdges() 
+        {
+            List<Edge> edges = new List<Edge>();
+            try
+            {
+                for (int i = 0; i < Count - 1; i++)
+                    edges.Add(this[i].GetEdge(this[i + 1]));
+            }
+            catch (KeyNotFoundException)
+            {
+                throw new Exception("Path not coherent.");
+            }
+            return edges;
+        }
+
         public override string ToString()
         {
             string toReturn = "";
