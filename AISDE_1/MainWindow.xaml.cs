@@ -43,8 +43,6 @@ namespace AISDE_1
         {
             GraphDisplayWindow graphWindow = new GraphDisplayWindow { graph = Graph.ReadGraph(TextFileDirectoryTextBox.Text) };
             graphWindow.DisplayGraph();
-            GraphPath path = new GraphPath { graphWindow.graph.Vertices[0], graphWindow.graph.Vertices[1], graphWindow.graph.Vertices[5] };
-            graphWindow.ColorPath(path);
             graphWindow.Show();
         }
 

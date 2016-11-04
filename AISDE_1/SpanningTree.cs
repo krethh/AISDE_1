@@ -8,7 +8,7 @@ namespace AISDE_1
 {
     /// <summary>
     /// Klasa drzewa rozpinającego. Różni się od grafu tym, że explicité podane są krawędzie należące do drzewa - w przeciwieństwie
-    /// do grafu, w którym zbiór krawędzi to suma zbiorów sąsiadów wierzchołków tego grafu.
+    /// do grafu, w którym zbiór krawędzi to suma zbiorów sąsiadów wierzchołków tego grafu. Pomaga to w łatwym wyświetlaniu drzewa rozpinającego.
     /// </summary>
     public class SpanningTree : Graph
     {

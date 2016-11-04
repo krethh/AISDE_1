@@ -58,7 +58,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="EdgePropertiesWindow.xaml.cs">
+      <DependentUpon>EdgePropertiesWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="SpanningTree.cs" />
+    <Page Include="EdgePropertiesWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="GraphDisplayWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

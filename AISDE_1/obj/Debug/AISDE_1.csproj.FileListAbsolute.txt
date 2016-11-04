@@ -14,3 +14,5 @@ C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\obj\Debug\AIS
 C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\obj\Debug\AISDE_1.pdb
 C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\obj\Debug\GraphDisplayWindow.g.cs
 C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\obj\Debug\GraphDisplayWindow.baml
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\obj\Debug\EdgePropertiesWindow.g.cs
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\obj\Debug\EdgePropertiesWindow.baml

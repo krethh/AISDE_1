@@ -48,6 +48,8 @@ namespace AISDE_1
             return edges;
         }
 
+        public bool IsEmpty() => (GetEdges().Count == 0);
+     
         public override string ToString()
         {
             string toReturn = "";

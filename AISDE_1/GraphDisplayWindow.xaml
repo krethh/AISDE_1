@@ -7,6 +7,9 @@
         mc:Ignorable="d"
         Title="GraphDisplayWindow" Height="768" Width="1200">
     <Grid x:Name="graphGrid" HorizontalAlignment="Left" Width="1200" Height="768" VerticalAlignment="Top">
-        <Canvas x:Name="canvas" HorizontalAlignment="Left" Height="724" VerticalAlignment="Top" Width="1190" MouseMove="canvas_MouseMove" MouseUp="canvas_MouseUp"/>
+        <Canvas x:Name="canvas" HorizontalAlignment="Left" Height="724" VerticalAlignment="Top" Width="1190" MouseMove="canvas_MouseMove" MouseUp="canvas_MouseUp">
+            <Button x:Name="mstButton" Content="MST" Canvas.Left="25" Canvas.Top="35" Width="75" Click="mstButton_Click"/>
+            <Button x:Name="pathButton" Content="Ścieżka" Canvas.Left="116" Canvas.Top="35" Width="75" Click="pathButton_Click"/>
+        </Canvas>
     </Grid>
 </Window>

@@ -23,7 +23,17 @@ namespace AISDE_1
         public Dictionary<GraphVertex, Ellipse> VertexToShape { get; set; } // mapuje wierzchołki do kółek na ekranie
         public Dictionary<Ellipse, GraphVertex> ShapeToVertex { get; set; } // robi na odwrót niż powyżej.
         public Dictionary<Edge, Line> EdgeToShape { get; set; } // mapuje krawędzie do kresek na ekranie
+        public Dictionary<Line, Edge> ShapeToEdge { get; set; } // robi na odwrót niż powyżej       
+
+        public Rectangle RectangleDisplayed { get; set; } // etykieta wierzchołka, która aktualnie jest wyświetlana
+        public TextBlock TextBlockDisplayed { get; set; } // tekst w powyższej etykiecie
+
+        public GraphVertex StartVertex { get; set; }
+        public GraphVertex EndVertex { get; set; }
+
         private bool dragged;
+
+        // uchwyt do elipsy, która jest przeciągana po ekranie.
         private Ellipse EllipseMoved;
 
         public GraphDisplayWindow()
@@ -32,6 +42,10 @@ namespace AISDE_1
             VertexToShape = new Dictionary<GraphVertex, Ellipse>();
             ShapeToVertex = new Dictionary<Ellipse, GraphVertex>();
             EdgeToShape = new Dictionary<Edge, Line>();
+            ShapeToEdge = new Dictionary<Line, Edge>();
+            RectangleDisplayed = null;
+            StartVertex = null;
+            EndVertex = null;
         }                  
 
         public void DisplayGraph()
@@ -44,6 +58,10 @@ namespace AISDE_1
                 {
                     Edge toDraw = vertex.GetEdge(neighbor);
                     var edge = new Line();
+                    edge.MouseEnter += shape_MouseEnter;
+                    edge.MouseLeave += shape_MouseLeave;
+                    edge.MouseRightButtonDown += edge_MouseRightDown;
+
                     edge.Stroke = Brushes.Black;
 
                     edge.X1 = vertex.Coordinates.X + 6.25; // +5 dla promienia wierzchołka
@@ -53,8 +71,16 @@ namespace AISDE_1
                     edge.Y2 = neighbor.Coordinates.Y + 6.25;
                     edge.StrokeThickness = 2;
 
+                    PathFigure figure = new PathFigure();
+                    figure.StartPoint = new Point(vertex.Coordinates.X, vertex.Coordinates.Y);
+
+                    Path path = new Path();
+                    
+                    
+
                     canvas.Children.Add(edge);
                     EdgeToShape.Add(toDraw, edge);
+                    ShapeToEdge.Add(edge, toDraw);
                 }
             }
 
@@ -63,6 +89,9 @@ namespace AISDE_1
                 var ellipse = new Ellipse();
 
                 ellipse.MouseLeftButtonDown += ellipse_MouseDown;
+                ellipse.MouseEnter += shape_MouseEnter;
+                ellipse.MouseLeave += shape_MouseLeave;
+                ellipse.MouseRightButtonDown += ellipse_MouseRightDown;
 
                 ellipse.Stroke = System.Windows.Media.Brushes.Black;
                 ellipse.StrokeThickness = 1;
@@ -79,12 +108,115 @@ namespace AISDE_1
                 canvas.Children.Add(ellipse);
                 VertexToShape.Add(v, ellipse);
                 ShapeToVertex.Add(ellipse, v);
-                }          
+            }          
+        }
+
+        private void edge_MouseRightDown(object sender, MouseButtonEventArgs e)
+        {
+            var line = (Line)sender;
+            var edge = ShapeToEdge[line];
+
+            var window = new EdgePropertiesWindow(edge);
+            window.Show();
+        }
+
+        private void ellipse_MouseRightDown(object sender, MouseButtonEventArgs e)
+        {
+            var shape = (Ellipse)sender;
+            var vertex = ShapeToVertex[shape];
+            if (StartVertex == null)
+            {
+                StartVertex = vertex;
+                shape.Fill = Brushes.OrangeRed;
+            }
+            else if (StartVertex != null && EndVertex == null)
+            {
+                EndVertex = vertex;
+                shape.Fill = Brushes.Olive;
+            }
+            else if (StartVertex != null && EndVertex != null)
+            {
+                VertexToShape[EndVertex].Fill = Brushes.DarkBlue;
+                EndVertex = null;
+                VertexToShape[StartVertex].Fill = Brushes.DarkBlue;
+                StartVertex = vertex;
+                shape.Fill = Brushes.OrangeRed;
+            }
+
+        }
+
+        private void edge_MouseLeave(object sender, MouseEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Jeżeli kursor znika z wierzchołka, to przestań wyświetlać etykietę
+        /// </summary>
+        private void shape_MouseLeave(object sender, MouseEventArgs e)
+        {
+            canvas.Children.Remove(RectangleDisplayed);
+            canvas.Children.Remove(TextBlockDisplayed);
+            RectangleDisplayed = null;
+            TextBlockDisplayed = null;
+        }
+
+        /// <summary>
+        /// Wyświetla etykietę wierzchołka, jeżeli na tymże jest kursor.
+        /// </summary>
+        private void shape_MouseEnter(object sender, MouseEventArgs e)
+        {
+            if (RectangleDisplayed != null)
+                return;
+
+            GraphVertex vertex = null;
+            Edge line = null;
+
+            // sprawdza na co użytkownik najechał myszką
+            if (sender.GetType() == typeof(Ellipse))
+            {
+                var shape = (Ellipse)sender;
+                vertex = ShapeToVertex[shape];
+            }
+
+            else
+            {
+                var shape = (Line)sender;
+                line = ShapeToEdge[shape];
+            }
+
+            var pos = Mouse.GetPosition(this);
+
+            Rectangle rect = new Rectangle();
+            RectangleDisplayed = rect;
+
+            Canvas.SetLeft(rect, pos.X);
+            Canvas.SetTop(rect, pos.Y - 50);
+            rect.Fill = Brushes.LightYellow;
+            rect.StrokeThickness = 1;
+            rect.Stroke = Brushes.Black;
+            rect.Width = line != null ? 100 : 40; // jeżeli wyświetlamy informacje o wierzchołku szerokość etykiety wystarczy 40 px, wpp trzeba 100 px
+            rect.Height = 20;
+           
+            TextBlock text = new TextBlock();
+            TextBlockDisplayed = text;
+
+            if (vertex != null)
+                text.Text = "ID: " + vertex.ID.ToString();
+            else
+                text.Text = "V1: " + line.End1.ID.ToString() + ", V2: " + line.End2.ID.ToString() + ", c = " + line.Cost;
+
+            Canvas.SetLeft(text, pos.X + 2);
+            Canvas.SetTop(text, pos.Y - 50);
+
+            canvas.Children.Add(rect);
+            canvas.Children.Add(text);
         }
 
         public void ColorPath(GraphPath path)
         {
-            path.ForEach(v => ((Ellipse)VertexToShape[v]).Fill = System.Windows.Media.Brushes.Red);
+            path.FindAll(v => v!= StartVertex && v!= EndVertex).
+                ForEach(v => ((Ellipse)VertexToShape[v]).Fill = System.Windows.Media.Brushes.Red);
             path.GetEdges().ForEach(e => EdgeToShape[e].Stroke = Brushes.Green);
         }
 
@@ -97,6 +229,9 @@ namespace AISDE_1
             }
         }
 
+        /// <summary>
+        /// Obsługuje przeciąganie wierzchołków.
+        /// </summary>
         private void canvas_MouseMove(object sender, MouseEventArgs e)
         {
             if (dragged && Mouse.LeftButton == MouseButtonState.Pressed && EllipseMoved != null)
@@ -155,6 +290,54 @@ namespace AISDE_1
         {
             dragged = false;
             EllipseMoved = null;
+        }
+
+        /// <summary>
+        /// Wylicza MST dla grafu i koloruje ścieżki i węzły należące do MST.
+        /// </summary>
+        private void mstButton_Click(object sender, RoutedEventArgs e)
+        {
+            SpanningTree mst = graph.MinimumSpanningTree();
+            if (mst == null)
+            {
+                // jeżeli mst == null, znaczy, że nie istnieje drzewo rozpinające - funkcja MinimumSpanningTree grafu zwraca null.
+                MessageBox.Show("Nie istnieje minimalne drzewo rozpinające - graf nie jest spójny.", "Błąd!", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            RestoreDefaultColors();
+            mst.Edges.ForEach(edge => EdgeToShape[edge].Stroke = Brushes.Red);
+        }
+
+        private void pathButton_Click(object sender, RoutedEventArgs e)
+        {          
+            // nie licz ścieżki jeżeli nie są zaznaczone dwa wierzchołki
+            if(EndVertex == null || StartVertex == null)
+            {
+                MessageBox.Show("Wierzchołek początkowy i końcowy nie są poprawnie zaznaczone.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                foreach (var shape in ShapeToVertex.Keys)
+                    shape.Fill = Brushes.DarkBlue;
+                return;
+            }
+
+            // wymaż z grafu wcześniej pomalowane ścieżki;
+            RestoreDefaultColors();        
+
+            GraphPath path = graph.Dijkstra(StartVertex, EndVertex);
+            if(path.IsEmpty())
+            {
+                MessageBox.Show("Ścieżka nie istnieje.", "Brak ścieżki", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            ColorPath(path);
+        }
+
+        private void RestoreDefaultColors()
+        {
+            foreach (var line in ShapeToEdge.Keys)
+                line.Stroke = Brushes.Black;
+            foreach (var ellipse in ShapeToVertex.Keys)
+                if (ShapeToVertex[ellipse] != StartVertex && ShapeToVertex[ellipse] != EndVertex)
+                    ellipse.Fill = Brushes.DarkBlue;
         }
     }
 }

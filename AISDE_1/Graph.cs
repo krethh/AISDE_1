@@ -292,16 +292,24 @@ namespace AISDE_1
             foreach (var v in tree.Vertices[0].GetNeighbors())
                 possibleEdges.Enqueue(tree.Vertices[0].GetEdge(v));
 
-            while (tree.Vertices.Count < Vertices.Count)
+            try
             {
-                var edge = possibleEdges.Dequeue();
-                if (tree.Vertices.Contains(edge.End1) && !tree.Vertices.Contains(edge.End2))
+
+                while (tree.Vertices.Count < Vertices.Count)
                 {
-                    tree.AddVertex(edge.End2);
-                    tree.Edges.Add(edge);
-                    foreach (var v in edge.End2.GetNeighbors())
-                        possibleEdges.Enqueue(edge.End2.GetEdge(v));
+                    var edge = possibleEdges.Dequeue();
+                    if (tree.Vertices.Contains(edge.End1) && !tree.Vertices.Contains(edge.End2))
+                    {
+                        tree.AddVertex(edge.End2);
+                        tree.Edges.Add(edge);
+                        foreach (var v in edge.End2.GetNeighbors())
+                            possibleEdges.Enqueue(edge.End2.GetEdge(v));
+                    }
                 }
+            }
+            catch(ArgumentOutOfRangeException) // wystąpi, jeżeli w grafie będzie istniał wierzchołek niepołączony z żadnym innym. Wtedy MST nie istnieje!
+            {
+                return null;
             }
                   
             return tree;
@@ -320,7 +328,9 @@ namespace AISDE_1
                 fileLines.Add(line);
             file.Close();
 
-            fileLines = fileLines.FindAll(s => s[0] != '#'); // wywala linie, które zawierają komentarz
+
+            fileLines = fileLines.FindAll(s => s.Length != 0).
+                FindAll(s => s[0] != '#'); // wywala linie, które zawierają komentarz albo są puste
 
             Graph graph = new Graph();
             string currentLine = fileLines[1];
