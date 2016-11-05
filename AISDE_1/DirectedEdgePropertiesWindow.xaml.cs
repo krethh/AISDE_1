@@ -25,6 +25,7 @@ namespace AISDE_1
         {
             this.EdgeBeingChanged = EdgeBeingChanged;
             InitializeComponent();
+            costValueTextBox.Text = EdgeBeingChanged.Cost.ToString();
         }
 
         private void ok_button_Click(object sender, RoutedEventArgs e)

@@ -16,3 +16,5 @@ C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\obj\Debug\Gra
 C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\obj\Debug\GraphDisplayWindow.baml
 C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\obj\Debug\DirectedEdgePropertiesWindow.g.cs
 C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\obj\Debug\DirectedEdgePropertiesWindow.baml
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\obj\Debug\UndirectedEdgePropertiesWindow.g.cs
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\obj\Debug\UndirectedEdgePropertiesWindow.baml

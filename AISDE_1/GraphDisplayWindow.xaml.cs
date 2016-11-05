@@ -121,8 +121,16 @@ namespace AISDE_1
             var line = (Line)sender;
             var edge = ShapeToEdge[line];
 
-            var window = new DirectedEdgePropertiesWindow(edge);
-            window.Show();
+            if (edge.IsUndirected())
+            {
+                var window = new UndirectedEdgePropertiesWindow(edge, edge.End2.GetEdge(edge.End1));
+                window.Show();
+            }
+            else
+            {
+                var window = new DirectedEdgePropertiesWindow(edge);
+                window.Show();
+            }
         }
 
         /// <summary>
@@ -322,9 +330,9 @@ namespace AISDE_1
                 return;
             }
             RestoreDefaultColorsAndStartEndVertex();
-            mst.Edges.ForEach(edge => EdgeToShape[edge].Stroke = Brushes.Red);
+            mst.Edges.ForEach(edge => EdgeToShape[edge].Stroke = Brushes.DarkGoldenrod);
         }
-
+        
         /// <summary>
         /// Koloruje ścieżkę wyznaczoną z algorytmu Dijkstry.
         /// </summary>

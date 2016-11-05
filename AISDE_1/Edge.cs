@@ -41,6 +41,11 @@ namespace AISDE_1
             else return 1;
         }
 
+        /// <summary>
+        /// Zwraca true jeżeli krawędź jest nieskierowana (tzn. istnieje analogiczna krawędź w drugą stronę, niekoniecznie o tej samej wadze).
+        /// </summary>
+        public bool IsUndirected() => (End2.HasEdgeTo(End1));
+
         public override string ToString()
         {
             return End1.ID + " => " + End2.ID;
