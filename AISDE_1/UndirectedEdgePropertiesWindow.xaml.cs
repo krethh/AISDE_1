@@ -40,6 +40,9 @@ namespace AISDE_1
             this.Close();
         }
 
+        /// <summary>
+        /// Sprawdza, czy wprowadzony to TextBoxa tekst jest cyfrą.
+        /// </summary>
         private bool isNumericalInput(System.Windows.Input.KeyEventArgs e)
         {
             if (((int)e.Key > 33 && (int)e.Key < 44))
@@ -47,6 +50,9 @@ namespace AISDE_1
             return false;
         }
 
+        /// <summary>
+        /// Jeżeli wcisnięty klawisz nie jest cyfrą, to nie pozwala wprowadzić jego wartości do textboxa.
+        /// </summary>
         private void edge1CostValue_KeyDown(object sender, KeyEventArgs e)
         {
             if (!isNumericalInput(e))
