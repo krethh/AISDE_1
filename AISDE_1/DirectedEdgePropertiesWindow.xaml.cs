@@ -17,14 +17,13 @@ namespace AISDE_1
     /// <summary>
     /// Interaction logic for EdgePropertiesWindow.xaml
     /// </summary>
-    public partial class EdgePropertiesWindow : Window
+    public partial class DirectedEdgePropertiesWindow : Window
     {
         public Edge EdgeBeingChanged { get; set; }
 
-        public EdgePropertiesWindow(Edge EdgeBeingChanged)
+        public DirectedEdgePropertiesWindow(Edge EdgeBeingChanged)
         {
             this.EdgeBeingChanged = EdgeBeingChanged;
-
             InitializeComponent();
         }
 
@@ -45,6 +44,6 @@ namespace AISDE_1
         {
             if (!isNumericalInput(e))
                 e.Handled = ((int)e.Key != 2);
-        }
+        }   
     }
 }

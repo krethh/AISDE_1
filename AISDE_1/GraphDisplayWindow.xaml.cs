@@ -69,14 +69,7 @@ namespace AISDE_1
 
                     edge.X2 = neighbor.Coordinates.X + 6.25;
                     edge.Y2 = neighbor.Coordinates.Y + 6.25;
-                    edge.StrokeThickness = 2;
-
-                    PathFigure figure = new PathFigure();
-                    figure.StartPoint = new Point(vertex.Coordinates.X, vertex.Coordinates.Y);
-
-                    Path path = new Path();
-                    
-                    
+                    edge.StrokeThickness = 3.5;
 
                     canvas.Children.Add(edge);
                     EdgeToShape.Add(toDraw, edge);
@@ -108,18 +101,33 @@ namespace AISDE_1
                 canvas.Children.Add(ellipse);
                 VertexToShape.Add(v, ellipse);
                 ShapeToVertex.Add(ellipse, v);
+            }
+
+            /// potrzebne do obsługi łącz nieskierowanych; jeżeli łącze jest nieskierowane to ma większą nieprzezroczystość;
+            /// dzięki temu kolorowanie ścieżek jest widoczne zawsze. Gdyby tego nie było, to pokolorowana ścieżka 1=>2 mogłaby
+            /// się schować pod niekolorowaną ścieżką 2=>1.
+            foreach (var edge in EdgeToShape.Keys)
+            {
+                if (edge.End2.HasEdgeTo(edge.End1))
+                    EdgeToShape[edge].Opacity = 0.5;
             }          
         }
 
+        /// <summary>
+        /// Wyświetla okienko zmiany wagi danej krawędzi po kliknięciu prawym na tę krawędź.
+        /// </summary>
         private void edge_MouseRightDown(object sender, MouseButtonEventArgs e)
         {
             var line = (Line)sender;
             var edge = ShapeToEdge[line];
 
-            var window = new EdgePropertiesWindow(edge);
+            var window = new DirectedEdgePropertiesWindow(edge);
             window.Show();
         }
 
+        /// <summary>
+        /// Maluje daną elipsę na kolor startu albo końca ścieżki.
+        /// </summary>
         private void ellipse_MouseRightDown(object sender, MouseButtonEventArgs e)
         {
             var shape = (Ellipse)sender;
@@ -142,16 +150,10 @@ namespace AISDE_1
                 StartVertex = vertex;
                 shape.Fill = Brushes.OrangeRed;
             }
-
-        }
-
-        private void edge_MouseLeave(object sender, MouseEventArgs e)
-        {
-            throw new NotImplementedException();
         }
 
         /// <summary>
-        /// Jeżeli kursor znika z wierzchołka, to przestań wyświetlać etykietę
+        /// Jeżeli kursor znika z wierzchołka/krawędzi, to przestań wyświetlać etykietę
         /// </summary>
         private void shape_MouseLeave(object sender, MouseEventArgs e)
         {
@@ -162,7 +164,7 @@ namespace AISDE_1
         }
 
         /// <summary>
-        /// Wyświetla etykietę wierzchołka, jeżeli na tymże jest kursor.
+        /// Wyświetla etykietę wierzchołka/krawędzi, jeżeli na tymże jest kursor.
         /// </summary>
         private void shape_MouseEnter(object sender, MouseEventArgs e)
         {
@@ -213,13 +215,19 @@ namespace AISDE_1
             canvas.Children.Add(text);
         }
 
+        /// <summary>
+        /// Koloruje daną ścieżkę na ekranie na czerwono - zielono.
+        /// </summary>
         public void ColorPath(GraphPath path)
         {
-            path.FindAll(v => v!= StartVertex && v!= EndVertex).
+            path.FindAll(v => v!= StartVertex && v!= EndVertex). // zostaw wierzchołki początkowe i końcowe ścieżki, żeby je odróżnić od pośrednich
                 ForEach(v => ((Ellipse)VertexToShape[v]).Fill = System.Windows.Media.Brushes.Red);
-            path.GetEdges().ForEach(e => EdgeToShape[e].Stroke = Brushes.Green);
+            path.GetEdges().ForEach(e => EdgeToShape[e].Stroke = Brushes.DarkTurquoise);
         }
 
+        /// <summary>
+        /// W przypadku kliknięcia na elipsę ustawia tą elipsę jako obiekt przeciągany.
+        /// </summary>
         private void ellipse_MouseDown(object sender, MouseEventArgs e)
         {
             if (e.LeftButton == MouseButtonState.Pressed)
@@ -255,6 +263,9 @@ namespace AISDE_1
             }
         }
 
+        /// <summary>
+        /// Zwraca listę kresek na ekranie wychodzących z danej elipsy.
+        /// </summary>
         private List<Line> GetLinesOutgoingOfShape(Ellipse ellipse)
         {
             List<Line> lines = new List<Line>();
@@ -269,6 +280,9 @@ namespace AISDE_1
             return lines;
         }
 
+        /// <summary>
+        /// Zwraca listę kresek na ekranie wchodzących do danej elipsy.
+        /// </summary>
         private List<Line> GetLinesIngoingToShape(Ellipse ellipse)
         {
             List<Line> lines = new List<Line>();
@@ -286,6 +300,9 @@ namespace AISDE_1
             return lines;
         }
 
+        /// <summary>
+        /// Handler podniesienia przycisku; zatrzymuje przeciąganie elipsy po ekranie.
+        /// </summary>
         private void canvas_MouseUp(object sender, MouseButtonEventArgs e)
         {
             dragged = false;
@@ -304,23 +321,18 @@ namespace AISDE_1
                 MessageBox.Show("Nie istnieje minimalne drzewo rozpinające - graf nie jest spójny.", "Błąd!", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
-            RestoreDefaultColors();
+            RestoreDefaultColorsAndStartEndVertex();
             mst.Edges.ForEach(edge => EdgeToShape[edge].Stroke = Brushes.Red);
         }
 
+        /// <summary>
+        /// Koloruje ścieżkę wyznaczoną z algorytmu Dijkstry.
+        /// </summary>
         private void pathButton_Click(object sender, RoutedEventArgs e)
-        {          
-            // nie licz ścieżki jeżeli nie są zaznaczone dwa wierzchołki
-            if(EndVertex == null || StartVertex == null)
-            {
-                MessageBox.Show("Wierzchołek początkowy i końcowy nie są poprawnie zaznaczone.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Exclamation);
-                foreach (var shape in ShapeToVertex.Keys)
-                    shape.Fill = Brushes.DarkBlue;
-                return;
-            }
-
+        {
+            if (!AreCorrectPathParameters()) return;               
             // wymaż z grafu wcześniej pomalowane ścieżki;
-            RestoreDefaultColors();        
+            RestoreDefaultColorsAndStartEndVertex();        
 
             GraphPath path = graph.Dijkstra(StartVertex, EndVertex);
             if(path.IsEmpty())
@@ -331,13 +343,52 @@ namespace AISDE_1
             ColorPath(path);
         }
 
-        private void RestoreDefaultColors()
+        /// <summary>
+        /// Przywraca domyślne kolory grafu (niebieski, czarny).
+        /// </summary>
+        private void RestoreDefaultColorsAndStartEndVertex()
         {
             foreach (var line in ShapeToEdge.Keys)
                 line.Stroke = Brushes.Black;
             foreach (var ellipse in ShapeToVertex.Keys)
                 if (ShapeToVertex[ellipse] != StartVertex && ShapeToVertex[ellipse] != EndVertex)
                     ellipse.Fill = Brushes.DarkBlue;
+        }
+
+        /// <summary>
+        /// Koloruje ścieżkę wyliczoną z algorytmu Floyda.
+        /// </summary>
+        private void floydPathButton_Click(object sender, RoutedEventArgs e)
+        {
+            if(!graph.WasFloydCalculated)
+                graph.Floyd();
+
+            if (!AreCorrectPathParameters()) return;
+            RestoreDefaultColorsAndStartEndVertex();
+
+            GraphPath path = graph.FloydPaths[new Tuple<GraphVertex, GraphVertex>(StartVertex, EndVertex)];
+            if (path.IsEmpty())
+            {
+                MessageBox.Show("Ścieżka nie istnieje.", "Brak ścieżki", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            ColorPath(path);
+        }
+
+        /// <summary>
+        /// Sprawdza, czy wierzchołki ścieżki są dobrze zaznaczone.
+        /// </summary>
+        private bool AreCorrectPathParameters()
+        {
+            // nie licz ścieżki jeżeli nie są zaznaczone dwa wierzchołki
+            if (EndVertex == null || StartVertex == null)
+            {
+                MessageBox.Show("Wierzchołek początkowy i końcowy nie są poprawnie zaznaczone.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                foreach (var shape in ShapeToVertex.Keys)
+                    shape.Fill = Brushes.DarkBlue;
+                return false;
+            }
+            return true;
         }
     }
 }

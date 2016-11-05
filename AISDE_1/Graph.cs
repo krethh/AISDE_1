@@ -20,6 +20,7 @@ namespace AISDE_1
         {
             Vertices = new List<GraphVertex>();
             FloydPaths = new Dictionary<Tuple<GraphVertex, GraphVertex>, GraphPath>();
+            WasFloydCalculated = false;
         }
 
         /// <summary>
@@ -176,6 +177,11 @@ namespace AISDE_1
         }
 
         /// <summary>
+        /// Mówi, czy był już wywoływany algorytm Floyda.
+        /// </summary>
+        public bool WasFloydCalculated { get; set; }
+
+        /// <summary>
         /// Przypisuje każdemu wierzchołkowi grafu pozycję na ekranie na podstawie rozmiaru okienka
         /// oraz ilości wierzchołków w grafie. Wierzchołki są w pierwszej kolejności rozmieszczane
         /// na okręgu o promieniu równym: krótszy z wymiarów ekranu - 100 (50 px marginesu).
@@ -275,6 +281,7 @@ namespace AISDE_1
                     FloydPaths.Add(new Tuple<GraphVertex, GraphVertex>(Vertices[i], Vertices[j]), path);
                 }
             }
+            WasFloydCalculated = true;
         }
 
         /// <summary>
