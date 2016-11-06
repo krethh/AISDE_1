@@ -400,6 +400,9 @@ namespace AISDE_1
             return true;
         }
 
+        /// <summary>
+        /// Ustawia wagi wszystkich łączy na losową liczbę z przedziału 0-10.
+        /// </summary>
         private void randomCostsButton_Click(object sender, RoutedEventArgs e)
         {
             Random random = new Random();

@@ -16,6 +16,11 @@ namespace AISDE_1
         /// </summary>
         public Dictionary<Tuple<GraphVertex, GraphVertex>, GraphPath> FloydPaths { get; set; }
 
+        /// <summary>
+        /// Mówi, czy był już wywoływany algorytm Floyda.
+        /// </summary>
+        public bool WasFloydCalculated { get; set; }
+
         public Graph()
         {
             Vertices = new List<GraphVertex>();
@@ -90,11 +95,11 @@ namespace AISDE_1
         }
 
         /// <summary>
-        /// Zwraca ścieżkę GraphPath pomiędzy dwoma wierzchołkami. Ścieżka zawiera wierzchołek początkowy, końcowy oraz pośrednie.
+        /// Oblicza najkrótszą ścieżkę algorytmem Dijkstry. Ścieżka zawiera wierzchołek początkowy, końcowy oraz pośrednie.
         /// </summary>
         /// <param name="start">Wierzchołek początkowy.</param>
         /// <param name="goal">Wierzchołek końcowy.</param>
-        /// <returns></returns>
+        /// <returns>Najkrótsza ścieżka pomiędzy dwoma wierzchołkami.</returns>
         public GraphPath Dijkstra(GraphVertex start, GraphVertex goal)
         {
             // jeżeli ścieżka jest od tego samego wierzchołka do tego samego zwróć pustą ścieżkę z kosztem zero
@@ -155,15 +160,12 @@ namespace AISDE_1
                         }
                     }
                 }
-
             }
-
 
             if (!goalFound)
                 return new GraphPath { TotalCost = double.PositiveInfinity }; //jeżeli ścieżka nie istnieje zwróć pustą ścieżkę z kosztem nieskończoność
 
             GraphPath path = new GraphPath();
-
             GraphVertex temp = goalVertex;
 
             /// odtwarza ścieżkę za pomocą parentMap
@@ -175,11 +177,6 @@ namespace AISDE_1
             path.Insert(0, startVertex);
             return path;
         }
-
-        /// <summary>
-        /// Mówi, czy był już wywoływany algorytm Floyda.
-        /// </summary>
-        public bool WasFloydCalculated { get; set; }
 
         /// <summary>
         /// Przypisuje każdemu wierzchołkowi grafu pozycję na ekranie na podstawie rozmiaru okienka
@@ -228,6 +225,7 @@ namespace AISDE_1
         public void Floyd()
         {
             /// przy pierwszym wywołaniu algorytmu Floyda ustawia zdarzenie, które resetuje flagę wyliczenia floyda na wypadek zmiany wagi któregoś łącza
+            /// Jest to zrobione tutaj, ponieważ nie wiemy, czy będziemy w ogóle korzystać z algorytmu Floyda
             Edge.CostChanged += ResetFloydCalculatedFlag;
             FloydPaths = new Dictionary<Tuple<GraphVertex, GraphVertex>, GraphPath>();
 
@@ -284,7 +282,7 @@ namespace AISDE_1
         /// <param name="predecessors">Tablica poprzedników wyliczona z algorytmu Floyda.</param>
         /// <param name="alreadyDone">Ścieżka obliczona w poprzednim wywołaniu rekurencyjnym.</param>
         /// <param name="isFirstGo">Flaga mówiąca, czy funkcja wywoływana jest pierwszy raz, czy rekurencyjnie.</param>
-        /// <returns></returns>
+        /// <returns>Najkrótszą ścieżkę pomiędzy wskazaną parą wierzczhołków.</returns>
         private GraphPath ReconstructPath(GraphVertex start, GraphVertex end, GraphVertex[,] predecessors, GraphPath alreadyDone, bool isFirstGo)
         {
             GraphPath path = new GraphPath();
@@ -296,11 +294,16 @@ namespace AISDE_1
             GraphVertex throughVertex = start;
             while(throughVertex != predecessors[throughVertex.ID - 1, end.ID -1 ])
             {
+                /// Jeżeli obecnie sprawdzany wierzchołek ma łącze do kolejnego wierzchołka w tablicy poprzedników, to dodaj
+                /// do ścieżki to łącze.
                 if (throughVertex.HasEdgeTo(predecessors[throughVertex.ID - 1, end.ID - 1]))
                 {
                     throughVertex = predecessors[throughVertex.ID - 1, end.ID - 1];
                     path.Add(throughVertex);
                 }
+                /// Jeżeli nie ma łącza do kolejnego wierzchołka z tablicy poprzedników, to wylicz ścieżkę prowadzącą do niego
+                /// oraz dołącz ją do już wyliczonej ścieżki. Następnie ustaw ostatni wierzchołek z tej pośredniej ścieżki jako
+                /// wierzchołek obecnie sprawdzany.
                 else
                 {
                     path = path.Combine(ReconstructPath(throughVertex, predecessors[throughVertex.ID - 1, end.ID - 1], predecessors, path, false));
@@ -395,7 +398,8 @@ namespace AISDE_1
         }
 
         /// <summary>
-        /// Jeżeli zostanie zmieniona waga jakiegoś łącza, to ustaw flagę "obliczono Floyda" na false.
+        /// Jeżeli zostanie zmieniona waga jakiegoś łącza, to ustaw flagę "obliczono Floyda" na false,
+        /// ponieważ z nowymi wagami łączy trzeba cały algorytm przeliczyć jeszcze raz.
         /// </summary>
         public void ResetFloydCalculatedFlag(object sender, EdgeChangedEventArgs e)
         {
