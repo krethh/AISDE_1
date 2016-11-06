@@ -69,7 +69,8 @@ namespace AISDE_1
 
                     edge.X2 = neighbor.Coordinates.X + 6.25;
                     edge.Y2 = neighbor.Coordinates.Y + 6.25;
-                    edge.StrokeThickness = 3.5;
+
+                    edge.StrokeThickness = (toDraw.IsUndirected() ? 5 : 2.5); // jeżeli krawędź nieskierowana, to pomaluj ją grubiej
 
                     canvas.Children.Add(edge);
                     EdgeToShape.Add(toDraw, edge);
@@ -397,6 +398,14 @@ namespace AISDE_1
                 return false;
             }
             return true;
+        }
+
+        private void randomCostsButton_Click(object sender, RoutedEventArgs e)
+        {
+            Random random = new Random();
+            foreach (var v in graph.Vertices)
+                foreach (var n in v.GetNeighbors())
+                    v.GetEdge(n).Cost = random.Next(10);
         }
     }
 }

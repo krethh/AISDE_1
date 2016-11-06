@@ -7,10 +7,14 @@ namespace AISDE_1
 /// </summary>
     public class Edge : IComparable<Edge>
     {
+        private double _cost;
+
+        public static EventHandler<EdgeChangedEventArgs> CostChanged;
+
         /// <summary>
         /// Wierzchołek początkowy krawędzi.
         /// </summary>
-        public GraphVertex End1 { get; set; } 
+        public GraphVertex End1 { get; set; }
 
         /// <summary>
         /// Wierzchołek końcowy krawędzi.
@@ -18,9 +22,16 @@ namespace AISDE_1
         public GraphVertex End2 { get; set; }
 
         /// <summary>
-        /// Waga krawędzi.
+        /// Waga krawędzi. Przy zmianie rzuca zdarzenie informujące graf o tym, że trzeba znowu przeliczyć tabelę najkrótszych ścieżek.
         /// </summary>
-        public double Cost { get; set; }
+        public double Cost {
+            get { return _cost; }
+            set
+            {
+                _cost = value;
+                OnCostChanged(new EdgeChangedEventArgs(this)); // powiadamia graf o tym, że zmieniono wartość jakiejś krawędzi
+            }
+        }
 
         /// <summary>
         /// Kolor krawędzi wyświetlany na grafie.
@@ -49,6 +60,11 @@ namespace AISDE_1
         public override string ToString()
         {
             return End1.ID + " => " + End2.ID;
+        }
+
+        protected virtual void OnCostChanged(EdgeChangedEventArgs e)
+        {
+            CostChanged?.Invoke(this, e);
         }
     }
 }

@@ -5,7 +5,7 @@ using System.Windows;
 namespace AISDE_1
 {
     public class Graph
-    { 
+    {
         /// <summary>
         /// Zbiór wierzchołków należących do grafu.
         /// </summary>
@@ -44,7 +44,7 @@ namespace AISDE_1
             if (!Vertices.Contains(v))
             {
                 Vertices.Add(v);
-                if(v.ID == 0) // jeżeli już raz przypisano jakiemuś wierzchołkowi ID, to nie rób tego drugi raz (np. przy dodawaniu do drzewa)
+                if (v.ID == 0) // jeżeli już raz przypisano jakiemuś wierzchołkowi ID, to nie rób tego drugi raz (np. przy dodawaniu do drzewa)
                     v.ID = Vertices.Count;
                 return true;
             }
@@ -169,7 +169,7 @@ namespace AISDE_1
             /// odtwarza ścieżkę za pomocą parentMap
             while (!temp.Equals(startVertex))
             {
-                path.Insert(0, temp); 
+                path.Insert(0, temp);
                 temp = parentMap[temp];
             }
             path.Insert(0, startVertex);
@@ -220,13 +220,17 @@ namespace AISDE_1
                 Vertices[i].Coordinates = coordinates[i];
             }
 
-        }     
+        }
 
         /// <summary>
         /// Wylicza wszystke najkrótsze ścieżki pomiędzy wierzchołkami grafu i zapisuje je do słownika FloydPaths.
         /// </summary>
         public void Floyd()
         {
+            /// przy pierwszym wywołaniu algorytmu Floyda ustawia zdarzenie, które resetuje flagę wyliczenia floyda na wypadek zmiany wagi któregoś łącza
+            Edge.CostChanged += ResetFloydCalculatedFlag;
+            FloydPaths = new Dictionary<Tuple<GraphVertex, GraphVertex>, GraphPath>();
+
             double[,] distances = new double[Vertices.Count, Vertices.Count];
             GraphVertex[,] predecessors = new GraphVertex[Vertices.Count, Vertices.Count];
 
@@ -238,7 +242,7 @@ namespace AISDE_1
                 for (int j = 0; j < Vertices.Count; j++)
                     if (Vertices[i].HasEdgeTo(Vertices[j]))
                         predecessors[i, j] = Vertices[i];
-                    else predecessors[i, j] = null;
+
 
             for (int i = 0; i < Vertices.Count; i++)
                 for (int j = 0; j < Vertices.Count; j++)
@@ -266,22 +270,46 @@ namespace AISDE_1
                             new GraphPath { TotalCost = (i == j ? 0 : Double.PositiveInfinity) }); // jeżeli szukamy ścieżki do samego siebie ustaw na 0, w.p.p nieskończoność
                         continue;
                     }
-
-                    path.Add(Vertices[i]);
-
-                    throughVertex = Vertices[i];
-
-                    /// odtwarza ścieżkę na podstawie tablicy poprzedników
-                    while (throughVertex != predecessors[throughVertex.ID -1, j])
-                    {
-                        throughVertex = predecessors[throughVertex.ID - 1 , j];
-                        path.Add(throughVertex);
-                    }
-                    path.Add(Vertices[j]);
-                    FloydPaths.Add(new Tuple<GraphVertex, GraphVertex>(Vertices[i], Vertices[j]), path);
+                    FloydPaths.Add(new Tuple<GraphVertex, GraphVertex>(Vertices[i], Vertices[j]), ReconstructPath(Vertices[i], Vertices[j], predecessors, new GraphPath(), true));
                 }
             }
             WasFloydCalculated = true;
+        }
+        
+        /// <summary>
+        /// Opcjonalnie rekurencyjna procedura odtwarzająca ścieżkę na podstawie tablicy poprzedników.
+        /// </summary>
+        /// <param name="start">Wierzchołek początkowy ścieżki.</param>
+        /// <param name="end">Wierzchołek końcowy ścieżki.</param>
+        /// <param name="predecessors">Tablica poprzedników wyliczona z algorytmu Floyda.</param>
+        /// <param name="alreadyDone">Ścieżka obliczona w poprzednim wywołaniu rekurencyjnym.</param>
+        /// <param name="isFirstGo">Flaga mówiąca, czy funkcja wywoływana jest pierwszy raz, czy rekurencyjnie.</param>
+        /// <returns></returns>
+        private GraphPath ReconstructPath(GraphVertex start, GraphVertex end, GraphVertex[,] predecessors, GraphPath alreadyDone, bool isFirstGo)
+        {
+            GraphPath path = new GraphPath();
+
+            // żeby uniknąć podwójnego dodawania tych samych wierzchołków
+            if (isFirstGo)
+                path.Add(start);
+
+            GraphVertex throughVertex = start;
+            while(throughVertex != predecessors[throughVertex.ID - 1, end.ID -1 ])
+            {
+                if (throughVertex.HasEdgeTo(predecessors[throughVertex.ID - 1, end.ID - 1]))
+                {
+                    throughVertex = predecessors[throughVertex.ID - 1, end.ID - 1];
+                    path.Add(throughVertex);
+                }
+                else
+                {
+                    path = path.Combine(ReconstructPath(throughVertex, predecessors[throughVertex.ID - 1, end.ID - 1], predecessors, path, false));
+                    throughVertex = path[path.Count - 1];
+                }
+            }
+
+            path.Add(end);                                                
+            return path;
         }
 
         /// <summary>
@@ -365,5 +393,14 @@ namespace AISDE_1
             
             return graph;
         }
+
+        /// <summary>
+        /// Jeżeli zostanie zmieniona waga jakiegoś łącza, to ustaw flagę "obliczono Floyda" na false.
+        /// </summary>
+        public void ResetFloydCalculatedFlag(object sender, EdgeChangedEventArgs e)
+        {
+            WasFloydCalculated = false;
+        }
+
     }
 }

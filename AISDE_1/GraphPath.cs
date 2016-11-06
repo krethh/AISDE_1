@@ -33,7 +33,7 @@ namespace AISDE_1
         /// Zwraca wszystkie krawędzie należące do ścieżki
         /// </summary>
         /// <returns></returns>
-        public List<Edge> GetEdges() 
+        public List<Edge> GetEdges()
         {
             List<Edge> edges = new List<Edge>();
             try
@@ -49,7 +49,7 @@ namespace AISDE_1
         }
 
         public bool IsEmpty() => (GetEdges().Count == 0);
-     
+
         public override string ToString()
         {
             string toReturn = "";
@@ -77,7 +77,19 @@ namespace AISDE_1
 
             if (TotalCost != other.TotalCost) areEqual = false;
 
-            return areEqual;         
+            return areEqual;
+        }
+
+        public GraphPath Combine(GraphPath other)
+        {
+            GraphPath path = new GraphPath();
+            foreach (var v in this)
+                path.Add(v);
+
+            foreach (var v in other)
+                path.Add(v);
+
+            return path;   
         }
 
         // wylicza całkowity koszt przejścia ścieżką

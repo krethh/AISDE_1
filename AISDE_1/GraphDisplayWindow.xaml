@@ -9,8 +9,9 @@
     <Grid x:Name="graphGrid" HorizontalAlignment="Left" Width="1200" Height="768" VerticalAlignment="Top">
         <Canvas x:Name="canvas" HorizontalAlignment="Left" Height="724" VerticalAlignment="Top" Width="1190" MouseMove="canvas_MouseMove" MouseUp="canvas_MouseUp">
             <Button x:Name="mstButton" Content="MST" Canvas.Left="25" Canvas.Top="35" Width="75" Click="mstButton_Click"/>
-            <Button x:Name="pathButton" Content="Dijkstra" Canvas.Left="116" Canvas.Top="35" Width="75" Click="pathButton_Click"/>
-            <Button x:Name="floydPathButton" Content="Floyd" Canvas.Left="206" Canvas.Top="35" Width="75" Click="floydPathButton_Click"/>
+            <Button x:Name="pathButton" Content="Dijkstra" Canvas.Left="25" Canvas.Top="67" Width="75" Click="pathButton_Click"/>
+            <Button x:Name="floydPathButton" Content="Floyd" Canvas.Left="25" Canvas.Top="100" Width="75" Click="floydPathButton_Click"/>
+            <Button x:Name="randomCostsButton" Content="Losowe wagi" Canvas.Left="25" Canvas.Top="135" Width="75" Click="randomCostsButton_Click"/>
         </Canvas>
     </Grid>
 </Window>
