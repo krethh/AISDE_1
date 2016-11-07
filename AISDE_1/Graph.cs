@@ -318,7 +318,6 @@ namespace AISDE_1
 
             try
             {
-
                 while (tree.Vertices.Count < Vertices.Count)
                 {
                     var edge = possibleEdges.Dequeue();
@@ -334,8 +333,7 @@ namespace AISDE_1
             catch(ArgumentOutOfRangeException) // wystąpi, jeżeli w grafie będzie istniał wierzchołek niepołączony z żadnym innym. Wtedy MST nie istnieje!
             {
                 return null;
-            }
-                  
+            }                
             return tree;
         }
 
@@ -351,7 +349,6 @@ namespace AISDE_1
             while ((line = file.ReadLine()) != null)
                 fileLines.Add(line);
             file.Close();
-
 
             fileLines = fileLines.FindAll(s => s.Length != 0).
                 FindAll(s => s[0] != '#'); // wywala linie, które zawierają komentarz albo są puste

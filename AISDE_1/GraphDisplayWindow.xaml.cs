@@ -207,7 +207,7 @@ namespace AISDE_1
             rect.StrokeThickness = 1;
             rect.Stroke = Brushes.Black;
             rect.Width = line != null ? 100 : 40; // jeżeli wyświetlamy informacje o wierzchołku szerokość etykiety wystarczy 40 px, wpp trzeba 100 px
-            rect.Height = 20;
+            rect.Height = (sender.GetType() == typeof(Line) && line.IsUndirected()) ? 34 : 17;
            
             TextBlock text = new TextBlock();
             TextBlockDisplayed = text;
@@ -215,8 +215,11 @@ namespace AISDE_1
             if (vertex != null)
                 text.Text = "ID: " + vertex.ID.ToString();
             else
+            {
                 text.Text = "V1: " + line.End1.ID.ToString() + ", V2: " + line.End2.ID.ToString() + ", c = " + line.Cost;
-
+                if (line.IsUndirected())
+                    text.Text += "\nV2: " + line.End2.ID.ToString() + ", V1: " + line.End1.ID.ToString() + ", c = " + line.End2.GetEdge(line.End1).Cost;
+            }
             Canvas.SetLeft(text, pos.X + 2);
             Canvas.SetTop(text, pos.Y - 50);
 

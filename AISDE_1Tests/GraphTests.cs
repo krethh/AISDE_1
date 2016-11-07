@@ -16,7 +16,7 @@ namespace AISDE_1.Tests
         public void FloydTest()
         {
             Graph testGraph = Graph.ReadGraph("C:\\Users\\Paweł Kulig\\Desktop\\test_graf_pełny.txt");
-            for (int i = 0; i < 20000; i++)
+            for (int i = 0; i < 2000; i++)
             {
                 Random random = new Random();
                 foreach (var v in testGraph.Vertices)
@@ -24,22 +24,8 @@ namespace AISDE_1.Tests
                         v.GetEdge(n).Cost = random.Next(58) + 1;
 
                 testGraph.Floyd();
-
-
-                try {
                     Assert.AreEqual(testGraph.FloydPaths[new Tuple<GraphVertex, GraphVertex>(testGraph.Vertices[0],
-                        testGraph.Vertices[2])], testGraph.Dijkstra(testGraph.Vertices[0], testGraph.Vertices[2]));
-                }
-               catch
-                {
-                    var path1 = testGraph.FloydPaths[new Tuple<GraphVertex, GraphVertex>(testGraph.Vertices[0],
-                        testGraph.Vertices[2])];
-
-                    var path2 = testGraph.Dijkstra(testGraph.Vertices[0], testGraph.Vertices[2]);
-
-                    testGraph.Floyd();
-                }
-                
+                        testGraph.Vertices[2])], testGraph.Dijkstra(testGraph.Vertices[0], testGraph.Vertices[2]));        
             }
         }
 
