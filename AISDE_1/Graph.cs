@@ -238,7 +238,7 @@ namespace AISDE_1
 
             for (int i = 0; i < Vertices.Count; i++)
                 for (int j = 0; j < Vertices.Count; j++)
-                    if (Vertices[i].HasEdgeTo(Vertices[j]))
+                    if (distances[i, j] != double.PositiveInfinity)
                         predecessors[i, j] = Vertices[i];
 
 
@@ -248,7 +248,7 @@ namespace AISDE_1
                         if (distances[j, i] + distances[i, k] < distances[j, k])
                         {
                             distances[j, k] = distances[j, i] + distances[i, k];
-                            predecessors[j, k] = Vertices[i];
+                            predecessors[j, k] = predecessors[i, k];
                         }
 
             for (int i = 0; i < Vertices.Count; i++)
@@ -257,7 +257,6 @@ namespace AISDE_1
                 for (int j = 0; j < Vertices.Count; j++)
                 {
                     GraphPath path = new GraphPath();
-
                     var throughVertex = predecessors[i, j];
 
                     /// brak wpisu w tablicy poprzedników może oznaczać dwie rzeczy: albo nie ma 
@@ -275,7 +274,7 @@ namespace AISDE_1
         }
         
         /// <summary>
-        /// Opcjonalnie rekurencyjna procedura odtwarzająca ścieżkę na podstawie tablicy poprzedników.
+        /// Rekurencyjna procedura odtwarzająca ścieżkę na podstawie tablicy poprzedników.
         /// </summary>
         /// <param name="start">Wierzchołek początkowy ścieżki.</param>
         /// <param name="end">Wierzchołek końcowy ścieżki.</param>
@@ -293,22 +292,9 @@ namespace AISDE_1
 
             GraphVertex throughVertex = start;
             while(throughVertex != predecessors[throughVertex.ID - 1, end.ID -1 ])
-            {
-                /// Jeżeli obecnie sprawdzany wierzchołek ma łącze do kolejnego wierzchołka w tablicy poprzedników, to dodaj
-                /// do ścieżki to łącze.
-                if (throughVertex.HasEdgeTo(predecessors[throughVertex.ID - 1, end.ID - 1]))
-                {
-                    throughVertex = predecessors[throughVertex.ID - 1, end.ID - 1];
-                    path.Add(throughVertex);
-                }
-                /// Jeżeli nie ma łącza do kolejnego wierzchołka z tablicy poprzedników, to wylicz ścieżkę prowadzącą do niego
-                /// oraz dołącz ją do już wyliczonej ścieżki. Następnie ustaw ostatni wierzchołek z tej pośredniej ścieżki jako
-                /// wierzchołek obecnie sprawdzany.
-                else
-                {
-                    path = path.Combine(ReconstructPath(throughVertex, predecessors[throughVertex.ID - 1, end.ID - 1], predecessors, path, false));
-                    throughVertex = path[path.Count - 1];
-                }
+            {  
+                 path = path.Combine(ReconstructPath(throughVertex, predecessors[throughVertex.ID - 1, end.ID - 1], predecessors, path, false));
+                 throughVertex = path[path.Count - 1];
             }
 
             path.Add(end);                                                
@@ -359,7 +345,7 @@ namespace AISDE_1
         /// <param name="fileLines">Ścieżka do pliku wejściwego.</param>
         public static Graph ReadGraph(string path)
         {
-            System.IO.StreamReader file = new System.IO.StreamReader("C:\\Users\\Paweł Kulig\\Desktop\\test.txt");
+            System.IO.StreamReader file = new System.IO.StreamReader(path);
             List<string> fileLines = new List<string>();
             var line = "";
             while ((line = file.ReadLine()) != null)

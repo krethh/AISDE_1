@@ -10,38 +10,37 @@ namespace AISDE_1.Tests
 {
     [TestClass()]
     public class GraphTests
-    { 
+    {
 
         [TestMethod()]
         public void FloydTest()
         {
-            Graph testGraph = new Graph();
+            Graph testGraph = Graph.ReadGraph("C:\\Users\\Paweł Kulig\\Desktop\\test_graf_pełny.txt");
+            for (int i = 0; i < 20000; i++)
+            {
+                Random random = new Random();
+                foreach (var v in testGraph.Vertices)
+                    foreach (var n in v.GetNeighbors())
+                        v.GetEdge(n).Cost = random.Next(58) + 1;
 
-            for (int i = 0; i < 6; i++)
-                testGraph.AddVertex(new GraphVertex());
+                testGraph.Floyd();
 
-            testGraph.AddEdge(testGraph.Vertices[0], testGraph.Vertices[1], 4);
-            testGraph.AddEdge(testGraph.Vertices[0], testGraph.Vertices[3], 1);
-            testGraph.AddEdge(testGraph.Vertices[3], testGraph.Vertices[2], 3);
-            testGraph.AddEdge(testGraph.Vertices[1], testGraph.Vertices[2], 2);
-            testGraph.AddEdge(testGraph.Vertices[2], testGraph.Vertices[1], 2);
-            testGraph.AddEdge(testGraph.Vertices[4], testGraph.Vertices[2], 3);
-            testGraph.AddEdge(testGraph.Vertices[1], testGraph.Vertices[4], 2);
-            testGraph.AddEdge(testGraph.Vertices[4], testGraph.Vertices[5], 5);
 
-            testGraph.Floyd();
+                try {
+                    Assert.AreEqual(testGraph.FloydPaths[new Tuple<GraphVertex, GraphVertex>(testGraph.Vertices[0],
+                        testGraph.Vertices[2])], testGraph.Dijkstra(testGraph.Vertices[0], testGraph.Vertices[2]));
+                }
+               catch
+                {
+                    var path1 = testGraph.FloydPaths[new Tuple<GraphVertex, GraphVertex>(testGraph.Vertices[0],
+                        testGraph.Vertices[2])];
 
-            GraphPath onefour = new GraphPath { testGraph.Vertices[1], testGraph.Vertices[4] };
-            onefour.TotalCost = 2;
-            GraphPath zerofour = new GraphPath { testGraph.Vertices[0], testGraph.Vertices[1], testGraph.Vertices[4] };
-            GraphPath threeone = new GraphPath { testGraph.Vertices[3], testGraph.Vertices[2], testGraph.Vertices[1] };
-            GraphPath fourzero = new GraphPath { TotalCost = Double.PositiveInfinity };
+                    var path2 = testGraph.Dijkstra(testGraph.Vertices[0], testGraph.Vertices[2]);
 
-            Assert.AreEqual(onefour, testGraph.FloydPaths[new Tuple<GraphVertex, GraphVertex>(testGraph.Vertices[1], testGraph.Vertices[4])]);
-            Assert.AreEqual(zerofour, testGraph.FloydPaths[new Tuple<GraphVertex, GraphVertex>(testGraph.Vertices[0], testGraph.Vertices[4])]);
-            Assert.AreEqual(threeone, testGraph.FloydPaths[new Tuple<GraphVertex, GraphVertex>(testGraph.Vertices[3], testGraph.Vertices[1])]);
-            Assert.AreEqual(fourzero.TotalCost, testGraph.FloydPaths[new Tuple<GraphVertex, GraphVertex>(testGraph.Vertices[4], testGraph.Vertices[0])].TotalCost);
-            Assert.AreEqual(0, testGraph.FloydPaths[new Tuple<GraphVertex, GraphVertex>(testGraph.Vertices[0], testGraph.Vertices[0])].TotalCost); 
+                    testGraph.Floyd();
+                }
+                
+            }
         }
 
         [TestMethod()]  

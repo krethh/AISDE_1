@@ -331,7 +331,7 @@ namespace AISDE_1
                 return;
             }
             RestoreDefaultColorsAndStartEndVertex();
-            mst.Edges.ForEach(edge => EdgeToShape[edge].Stroke = Brushes.DarkGoldenrod);
+            mst.Edges.ForEach(edge => EdgeToShape[edge].Stroke = Brushes.IndianRed);
         }
         
         /// <summary>
@@ -408,7 +408,7 @@ namespace AISDE_1
             Random random = new Random();
             foreach (var v in graph.Vertices)
                 foreach (var n in v.GetNeighbors())
-                    v.GetEdge(n).Cost = random.Next(10);
+                    v.GetEdge(n).Cost = random.Next(9) + 1;
         }
     }
 }
