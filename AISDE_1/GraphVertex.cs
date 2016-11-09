@@ -6,6 +6,8 @@ namespace AISDE_1
 {
     public class GraphVertex : IComparable<GraphVertex>
     {
+        private double _distance;
+
         /// <summary>
         /// Haszmapa zawierająca sąsiadów danego wierzchołka jako klucze oraz ścieżki łączące
         /// ten wierzchołek z sąsiadami jako wartościl
@@ -15,7 +17,12 @@ namespace AISDE_1
         /// <summary>
         /// Dystans od startu - etykieta w algorytmie Dijkstry.
         /// </summary>
-        public double DistanceFromStart { get; set; }
+        public double DistanceFromStart
+        {
+            get { return _distance; }
+            set { _distance = value;
+                OnDistanceChanged(new EventArgs()); }
+        }
 
         /// <summary>
         /// Położenie danego wierzchołka na mapie.
@@ -26,6 +33,8 @@ namespace AISDE_1
         /// ID wierzchołka w danym grafie.
         /// </summary>
         public int ID { get; set; }
+
+        public static EventHandler<EventArgs> CostToVertexChanged;
 
         public GraphVertex()
         {
@@ -61,7 +70,7 @@ namespace AISDE_1
         {
             return Neighbors[vertex];
         }
-        
+
         /// <summary>
         /// Zwraca ilość krawędzi wychodzących z wierzchołka.
         /// </summary>
@@ -73,7 +82,7 @@ namespace AISDE_1
         /// <summary>
         /// Zwraca true jeżeli dany wierzchołek ma krawędź łączącą z podanym wierzchołkiem.
         /// </summary>
-        public bool HasEdgeTo(GraphVertex end) => (Neighbors.ContainsKey(end));        
+        public bool HasEdgeTo(GraphVertex end) => (Neighbors.ContainsKey(end));
 
         /// <summary>
         /// Zwraca koszt dojścia do danego wierzchołka.
@@ -102,7 +111,12 @@ namespace AISDE_1
             //foreach (var n in neighbors.Keys)
             //    toReturn += Label + ", ";
 
-            return toReturn;   
+            return toReturn;
+        }
+
+        private void OnDistanceChanged(EventArgs e)
+        {
+            CostToVertexChanged?.Invoke(this, e);
         }
     }
 }

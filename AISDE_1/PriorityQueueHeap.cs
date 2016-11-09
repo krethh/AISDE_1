@@ -20,12 +20,13 @@ namespace AISDE_1
         {
             elements = new T[DEFAULT_COUNT];
             Count = 0;
+            GraphVertex.CostToVertexChanged += FindSmallest;
         }
 
         public T Peek()
         {
             if (Count == 0) throw new Exception("Heap empty.");
-            else return elements[1];
+            return elements[1];
         }
  
         public T Dequeue()
@@ -38,7 +39,6 @@ namespace AISDE_1
             PushDown();
 
             return element;
-
         }
 
         public void Enqueue(T t)
@@ -48,7 +48,7 @@ namespace AISDE_1
 
             Count++;
             elements[Count] = t;
-            PushUp();
+            PushUp(Count);
         }
 
         private void IncreaseSize()
@@ -79,14 +79,15 @@ namespace AISDE_1
             }
         }
 
-        private void PushUp()
+        private void PushUp(int index)
         {
-            int index = Count;           
-            while(index > 1 && elements[index/2].CompareTo(elements[index]) > 0 )
+            T tmp = elements[index];
+            while(index > 1 && tmp.CompareTo(elements[index/2]) < 0)
             {
-                Swap(index, index / 2);
+                elements[index] = elements[index / 2];
                 index = index / 2;
             }
+            elements[index] = tmp;
            
         }
 
@@ -95,6 +96,30 @@ namespace AISDE_1
             T tmp = elements[i1];
             elements[i1] = elements[i2];
             elements[i2] = tmp;
+        }
+
+        /// <summary>
+        /// Na wypadek zmiany wartości etykiety któregoś z elementów, struktura stosu zostaje zaburzona w nieznanym miejscu, więc "ręcznie"
+        /// wyciągam najmniejszy element na szczyt stosu i zamieniam go z tym który obecnie jest na górze. Następnie bąbelkuję ten element do góry
+        /// </summary>
+        private void FindSmallest(object sender, EventArgs e)
+        {
+            T smallest = elements[1];
+            int smallestIndex = 1;
+
+            for (int i = 1; i <= Count; i++)
+            {
+                if (elements[i].CompareTo(smallest) < 0)
+                {
+                    smallest = elements[i];
+                    smallestIndex = i;
+                }
+            }
+            if (smallestIndex != 1)
+            {
+                Swap(1, smallestIndex);
+                PushUp(smallestIndex);
+            }
         }
 
 

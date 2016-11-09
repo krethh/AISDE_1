@@ -14,16 +14,26 @@ namespace AISDE_1.Tests
         [TestMethod()]
         public void EnqueueTest()
         {
-            PriorityQueue<int> testQueue = new PriorityQueue<int>();
+            PriorityQueueHeap<int> testQueue = new PriorityQueueHeap<int>();
 
             testQueue.Enqueue(1);
-            Assert.AreEqual(testQueue.Count(), 1);
+            testQueue.Enqueue(4);
+            testQueue.Enqueue(7);
+            testQueue.Enqueue(0);
+            testQueue.Enqueue(3);
+
+            Assert.AreEqual(testQueue.Dequeue(), 0);
+            Assert.AreEqual(testQueue.Dequeue(), 1);
+            Assert.AreEqual(testQueue.Dequeue(), 3);
+            Assert.AreEqual(testQueue.Dequeue(), 4);
+            Assert.AreEqual(testQueue.Dequeue(), 7);
+
         }
 
         [TestMethod()]
         public void DequeueTest()
         {
-            PriorityQueue<int> testQueue = new PriorityQueue<int>();
+            PriorityQueueHeap<int> testQueue = new PriorityQueueHeap<int>();
             testQueue.Enqueue(1);
             testQueue.Enqueue(3);
             testQueue.Enqueue(2);
@@ -32,7 +42,7 @@ namespace AISDE_1.Tests
             Assert.AreEqual(testQueue.Dequeue(), 2);
             Assert.AreEqual(testQueue.Dequeue(), 3);
 
-            Assert.AreEqual(testQueue.Count(), 0);
+            Assert.AreEqual(testQueue.Count, 0);
 
             testQueue.Enqueue(0);
             testQueue.Enqueue(2);
@@ -54,21 +64,21 @@ namespace AISDE_1.Tests
         [TestMethod()]
         public void CountTest()
         {
-            PriorityQueue<int> testQueue = new PriorityQueue<int>();
-            Assert.AreEqual(testQueue.Count(), 0);
+            PriorityQueueHeap<int> testQueue = new PriorityQueueHeap<int>();
+            Assert.AreEqual(testQueue.Count, 0);
 
             testQueue.Enqueue(1);
-            Assert.AreEqual(testQueue.Count(), 1);
+            Assert.AreEqual(testQueue.Count, 1);
 
             int dequeued = testQueue.Dequeue();
             Assert.AreEqual(dequeued, 1);
-            Assert.AreEqual(testQueue.Count(), 0);        
+            Assert.AreEqual(testQueue.Count, 0);        
         }
 
         [TestMethod()]
         public void PeekTest()
         {
-            PriorityQueue<int> testQueue = new PriorityQueue<int>();
+            PriorityQueueHeap<int> testQueue = new PriorityQueueHeap<int>();
 
             testQueue.Enqueue(1);
             Assert.AreEqual(testQueue.Peek(), 1);
