@@ -62,6 +62,7 @@
       <DependentUpon>DirectedEdgePropertiesWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="EdgeChangedEventArgs.cs" />
+    <Compile Include="PriorityQueueHeap.cs" />
     <Compile Include="SpanningTree.cs" />
     <Compile Include="UndirectedEdgePropertiesWindow.xaml.cs">
       <DependentUpon>UndirectedEdgePropertiesWindow.xaml</DependentUpon>

@@ -106,7 +106,7 @@ namespace AISDE_1
             if (start == goal)
                 return new GraphPath { TotalCost = 0 };
 
-            PriorityQueue<GraphVertex> queue = new PriorityQueue<GraphVertex>();
+            PriorityQueueHeap<GraphVertex> queue = new PriorityQueueHeap<GraphVertex>();
             HashSet<GraphVertex> visited = new HashSet<GraphVertex>();
             Dictionary<GraphVertex, GraphVertex> parentMap = new Dictionary<GraphVertex, GraphVertex>();
 
@@ -132,7 +132,7 @@ namespace AISDE_1
             startVertex.DistanceFromStart = 0;
             queue.Enqueue(startVertex);
 
-            while (queue.Count() != 0)
+            while (queue.Count != 0)
             {
                 GraphVertex current = queue.Dequeue();
                 if (!visited.Contains(current))
@@ -256,15 +256,20 @@ namespace AISDE_1
                 var startVertex = Vertices[i];
                 for (int j = 0; j < Vertices.Count; j++)
                 {
+                    if (i == j) // jeżeli i == j szukamy do samego siebie, dodaj pustą ścieżkę z kosztem 0
+                    {
+                        FloydPaths.Add(new Tuple<GraphVertex, GraphVertex>(Vertices[i], Vertices[j]), new GraphPath { TotalCost = 0 });
+                        continue;
+                    }
+
                     GraphPath path = new GraphPath();
                     var throughVertex = predecessors[i, j];
 
-                    /// brak wpisu w tablicy poprzedników może oznaczać dwie rzeczy: albo nie ma 
-                    /// ścieżki, albo ścieżka jest do samego siebie
+                    /// brak wpisu w tablicy poprzedników oznacza, że nie ma ścieżki
                     if (throughVertex == null)
                     {
                         FloydPaths.Add(new Tuple<GraphVertex, GraphVertex>(Vertices[i], Vertices[j]),
-                            new GraphPath { TotalCost = (i == j ? 0 : Double.PositiveInfinity) }); // jeżeli szukamy ścieżki do samego siebie ustaw na 0, w.p.p nieskończoność
+                            new GraphPath { TotalCost =  Double.PositiveInfinity }); // ustaw koszt na nieskończoność
                         continue;
                     }
                     FloydPaths.Add(new Tuple<GraphVertex, GraphVertex>(Vertices[i], Vertices[j]), ReconstructPath(Vertices[i], Vertices[j], predecessors, new GraphPath(), true));
