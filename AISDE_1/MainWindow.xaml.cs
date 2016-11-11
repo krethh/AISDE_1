@@ -23,9 +23,12 @@ namespace AISDE_1
     /// </summary>
     public partial class MainWindow : Window
     {
+        public bool EdgeAdded;
+
         public MainWindow()
         {
             InitializeComponent();
+            EdgeAdded = false;
         }
 
         private void OpenFileDialogButton_Click(object sender, RoutedEventArgs e)
@@ -41,9 +44,17 @@ namespace AISDE_1
 
         private void LoadButton_Click(object sender, RoutedEventArgs e)
         {
-            GraphDisplayWindow graphWindow = new GraphDisplayWindow { graph = Graph.ReadGraph(TextFileDirectoryTextBox.Text) };
-            graphWindow.DisplayGraph();
-            graphWindow.Show();
+            try
+            {
+                GraphDisplayWindow graphWindow = new GraphDisplayWindow { graph = Graph.ReadGraph(TextFileDirectoryTextBox.Text) };
+                graphWindow.DisplayGraph();
+                graphWindow.Show();
+            }
+            catch(Exception ex)
+            {
+                System.Windows.MessageBox.Show(ex.Message, "Błąd!", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                return;
+            }
         }
 
     }

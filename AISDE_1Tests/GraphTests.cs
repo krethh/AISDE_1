@@ -16,7 +16,7 @@ namespace AISDE_1.Tests
         public void FloydTest()
         {
             Graph testGraph = Graph.ReadGraph("C:\\Users\\Paweł Kulig\\Desktop\\test_graf_pełny.txt");
-            for (int i = 0; i < 50000; i++)
+            for (int i = 0; i < 200; i++)
             {
                 Random random = new Random();
                 foreach (var v in testGraph.Vertices)

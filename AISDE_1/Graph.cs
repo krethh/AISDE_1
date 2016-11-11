@@ -6,6 +6,8 @@ namespace AISDE_1
 {
     public class Graph
     {
+        public static EventHandler<EventArgs> EdgeAdded;
+
         /// <summary>
         /// Zbiór wierzchołków należących do grafu.
         /// </summary>
@@ -15,6 +17,8 @@ namespace AISDE_1
         /// Zbiór ścieżek wyliczonych w algorytmie Floyda. Każda para wierzchołków jest kluczem dla najkrótszej ścieżki.
         /// </summary>
         public Dictionary<Tuple<GraphVertex, GraphVertex>, GraphPath> FloydPaths { get; set; }
+
+        public double[,] FloydDistances { get; set; }
 
         /// <summary>
         /// Mówi, czy był już wywoływany algorytm Floyda.
@@ -82,7 +86,15 @@ namespace AISDE_1
             if (toIndex == -1 || fromIndex == -1)
                 throw new ArgumentException();
 
-            Vertices[fromIndex].AddEdge(Vertices[toIndex], cost);
+            if(!end1.Neighbors.ContainsKey(end2))
+                Vertices[fromIndex].AddEdge(Vertices[toIndex], cost);
+            OnEdgeAdded(new EventArgs());
+        }
+
+        public void AddEdge(GraphVertex end1, GraphVertex end2, Edge edge)
+        {
+            end1.Neighbors.Add(end2, edge);
+            OnEdgeAdded(new EventArgs());
         }
 
         /// <summary>
@@ -171,52 +183,12 @@ namespace AISDE_1
             /// odtwarza ścieżkę za pomocą parentMap
             while (!temp.Equals(startVertex))
             {
-                path.Insert(0, temp);
+                path.Add(temp);
                 temp = parentMap[temp];
             }
-            path.Insert(0, startVertex);
+            path.Add(temp);
+            path.Reverse();
             return path;
-        }
-
-        /// <summary>
-        /// Przypisuje każdemu wierzchołkowi grafu pozycję na ekranie na podstawie rozmiaru okienka
-        /// oraz ilości wierzchołków w grafie. Wierzchołki są w pierwszej kolejności rozmieszczane
-        /// na okręgu o promieniu równym: krótszy z wymiarów ekranu - 100 (50 px marginesu).
-        /// </summary>
-        /// <param name="height">Wysokość okna.</param>
-        /// <param name="width">Szerokość okna.</param>
-        public void SetVertexDisplayCoordinates(int height, int width)
-        {
-            /// dodaje niezbędne marginesy
-            height = height - 100;
-            width = width - 100;
-
-            Point[] coordinates = new Point[Vertices.Count];
-            for (int i = 0; i < Vertices.Count; i++)
-                coordinates[i] = new Point();
-
-            Point center = new Point(height / 2, width / 2);
-            double radius;
-            if (height < width)
-                radius = height;
-            else radius = width;
-            radius /= 2;
-
-
-            double rotationAngle = 2 * Math.PI / Vertices.Count; // wylicza kąt obrotu na okręgu;  
-
-            //kalkuluje współrzędne wszystkich punktów 
-            for (int i = 0; i < Vertices.Count; i++)
-            {
-                coordinates[i].Y = center.X + radius * Math.Cos(i * rotationAngle);
-                coordinates[i].X = center.Y + radius * Math.Sin(i * rotationAngle);
-            }
-            for (int i = 0; i < Vertices.Count; i++)
-            {
-                if (Vertices[i].Coordinates.X != 0 || Vertices[i].Coordinates.Y != 0) continue; //jeżeli wcześniej przypisano wierzchołkom współrzędne to nie przypisuj ich znowu
-                Vertices[i].Coordinates = coordinates[i];
-            }
-
         }
 
         /// <summary>
@@ -275,6 +247,7 @@ namespace AISDE_1
                     FloydPaths.Add(new Tuple<GraphVertex, GraphVertex>(Vertices[i], Vertices[j]), ReconstructPath(Vertices[i], Vertices[j], predecessors, new GraphPath(), true));
                 }
             }
+            FloydDistances = distances;
             WasFloydCalculated = true;
         }
         
@@ -378,8 +351,34 @@ namespace AISDE_1
             while (!currentLine.Contains("ALGORYTM"))
             {
                 var numbers = currentLine.Split(null);
-                graph.AddEdge(graph.Vertices[ Int32.Parse(numbers[1]) -1], graph.Vertices[ Int32.Parse(numbers[2]) -1],  0);
+                graph.AddEdge(graph.Vertices[ Int32.Parse(numbers[1]) -1], graph.Vertices[ Int32.Parse(numbers[2]) -1],  double.Parse(numbers[3]));
                 currentLine = fileLines[++i];
+            }
+
+            if(currentLine.Contains("SCIEZKA"))
+            {
+                currentLine = fileLines[++i];
+                var numbers = currentLine.Split(null);
+                System.IO.StreamWriter output = new System.IO.StreamWriter("C:\\Users\\Paweł Kulig\\Desktop\\output.txt");
+                var start = graph.Vertices.Find(v => v.ID == int.Parse(numbers[0]));
+                var end = graph.Vertices.Find(v => v.ID == int.Parse(numbers[1]));
+                output.Write(graph.Dijkstra(start, end));
+                output.Close();
+            }
+
+            if(currentLine.Contains("FLOYD"))
+            {
+                graph.Floyd();
+                System.IO.StreamWriter output = new System.IO.StreamWriter("C:\\Users\\Paweł Kulig\\Desktop\\output.txt");
+                while(currentLine != "" && i != fileLines.Count -1)
+                {
+                    currentLine = fileLines[++i];
+                    var numbers = currentLine.Split(null);
+                    var start = graph.Vertices.Find(v => v.ID == int.Parse(numbers[0]));
+                    var end = graph.Vertices.Find(v => v.ID == int.Parse(numbers[1]));
+                    output.WriteLine(graph.FloydPaths[new Tuple<GraphVertex, GraphVertex>(start, end)]);                    
+                }
+                output.Close();
             }
             
             return graph;
@@ -392,6 +391,28 @@ namespace AISDE_1
         public void ResetFloydCalculatedFlag(object sender, EdgeChangedEventArgs e)
         {
             WasFloydCalculated = false;
+        }
+
+        public void RemoveEdge(Edge edge)
+        {
+            edge.End1.Neighbors.Remove(edge.End2);
+        }
+
+        public List<Edge> GetEdges()
+        {
+            List<Edge> edges = new List<Edge>();
+            foreach(var v in Vertices)
+                foreach(var n in v.Neighbors.Keys)
+                {
+                    if (!edges.Contains(v.GetEdge(n)))
+                        edges.Add(v.GetEdge(n));
+                }
+            return edges;
+        }
+
+        public void OnEdgeAdded(EventArgs e)
+        {
+            EdgeAdded?.Invoke(this, e);
         }
 
     }

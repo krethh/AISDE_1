@@ -46,11 +46,11 @@ namespace AISDE_1
             RectangleDisplayed = null;
             StartVertex = null;
             EndVertex = null;
-        }                  
+        }
 
         public void DisplayGraph()
         {
-            graph.SetVertexDisplayCoordinates(768, 1200);
+            SetVertexDisplayCoordinates(graph, 1200, 768);
 
             foreach (var vertex in graph.Vertices)
             {
@@ -70,7 +70,7 @@ namespace AISDE_1
                     edge.X2 = neighbor.Coordinates.X + 6.25;
                     edge.Y2 = neighbor.Coordinates.Y + 6.25;
 
-                    edge.StrokeThickness = (toDraw.IsUndirected() ? 5 : 2.5); // jeżeli krawędź nieskierowana, to pomaluj ją grubiej
+                    edge.StrokeThickness = (toDraw.IsUndirected() ? 5.0 : 2.5); // jeżeli krawędź nieskierowana, to pomaluj ją grubiej
 
                     canvas.Children.Add(edge);
                     EdgeToShape.Add(toDraw, edge);
@@ -79,7 +79,7 @@ namespace AISDE_1
             }
 
             foreach (var v in graph.Vertices)
-            { 
+            {
                 var ellipse = new Ellipse();
 
                 ellipse.MouseLeftButtonDown += ellipse_MouseDown;
@@ -111,7 +111,7 @@ namespace AISDE_1
             {
                 if (edge.End2.HasEdgeTo(edge.End1))
                     EdgeToShape[edge].Opacity = 0.5;
-            }          
+            }
         }
 
         /// <summary>
@@ -206,9 +206,13 @@ namespace AISDE_1
             rect.Fill = Brushes.LightYellow;
             rect.StrokeThickness = 1;
             rect.Stroke = Brushes.Black;
-            rect.Width = line != null ? 100 : 40; // jeżeli wyświetlamy informacje o wierzchołku szerokość etykiety wystarczy 40 px, wpp trzeba 100 px
-            rect.Height = (sender.GetType() == typeof(Line) && line.IsUndirected()) ? 34 : 17;
-           
+            rect.Width = line != null ?
+                    (line.IsUndirected() ?
+                        (line.Cost > line.End2.GetEdge(line.End1).Cost ? 100 + line.Cost.ToString().Length * 6.5
+                : line.End2.GetEdge(line.End1).Cost.ToString().Length * 6.5 + 100) : 100 + line.Cost.ToString().Length * 6.5) : 40; //wylicza długość etykiety
+
+            rect.Height = (sender.GetType() == typeof(Line) && line.IsUndirected()) ? 34 : 17; // dla nieskierowanego łącza potrzeba wyższej etykiety
+
             TextBlock text = new TextBlock();
             TextBlockDisplayed = text;
 
@@ -232,7 +236,7 @@ namespace AISDE_1
         /// </summary>
         public void ColorPath(GraphPath path)
         {
-            path.FindAll(v => v!= StartVertex && v!= EndVertex). // zostaw wierzchołki początkowe i końcowe ścieżki, żeby je odróżnić od pośrednich
+            path.FindAll(v => v != StartVertex && v != EndVertex). // zostaw wierzchołki początkowe i końcowe ścieżki, żeby je odróżnić od pośrednich
                 ForEach(v => ((Ellipse)VertexToShape[v]).Fill = System.Windows.Media.Brushes.Red);
             path.GetEdges().ForEach(e => EdgeToShape[e].Stroke = Brushes.DarkTurquoise);
         }
@@ -283,7 +287,7 @@ namespace AISDE_1
             List<Line> lines = new List<Line>();
             var vertex = ShapeToVertex[ellipse];
 
-            foreach(var v in vertex.GetNeighbors())
+            foreach (var v in vertex.GetNeighbors())
             {
                 var line = vertex.GetEdge(v);
                 lines.Add(EdgeToShape[line]);
@@ -336,18 +340,18 @@ namespace AISDE_1
             RestoreDefaultColorsAndStartEndVertex();
             mst.Edges.ForEach(edge => EdgeToShape[edge].Stroke = Brushes.IndianRed);
         }
-        
+
         /// <summary>
         /// Koloruje ścieżkę wyznaczoną z algorytmu Dijkstry.
         /// </summary>
         private void pathButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!AreCorrectPathParameters()) return;               
+            if (!AreCorrectPathParameters()) return;
             // wymaż z grafu wcześniej pomalowane ścieżki;
-            RestoreDefaultColorsAndStartEndVertex();        
+            RestoreDefaultColorsAndStartEndVertex();
 
             GraphPath path = graph.Dijkstra(StartVertex, EndVertex);
-            if(path.IsEmpty())
+            if (path.IsEmpty())
             {
                 MessageBox.Show("Ścieżka nie istnieje.", "Brak ścieżki", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
@@ -372,7 +376,7 @@ namespace AISDE_1
         /// </summary>
         private void floydPathButton_Click(object sender, RoutedEventArgs e)
         {
-            if(!graph.WasFloydCalculated)
+            if (!graph.WasFloydCalculated)
                 graph.Floyd();
 
             if (!AreCorrectPathParameters()) return;
@@ -412,6 +416,62 @@ namespace AISDE_1
             foreach (var v in graph.Vertices)
                 foreach (var n in v.GetNeighbors())
                     v.GetEdge(n).Cost = random.Next(9) + 1;
+        }
+
+        /// <summary>
+        /// Koloruje przekazane krawędzie.
+        /// </summary>
+        public void ColorEdges(List<Edge> edges)
+        {
+            foreach (var edge in edges)
+            {
+                if (EdgeToShape.ContainsKey(edge))
+                {
+                    Line line = EdgeToShape[edge];
+                    line.Stroke = Brushes.Red;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Przypisuje każdemu wierzchołkowi grafu pozycję na ekranie na podstawie rozmiaru okienka
+        /// oraz ilości wierzchołków w grafie. Wierzchołki są w pierwszej kolejności rozmieszczane
+        /// na okręgu o promieniu równym: krótszy z wymiarów ekranu - 100 (50 px marginesu).
+        /// </summary>
+        /// <param name="height">Wysokość okna.</param>
+        /// <param name="width">Szerokość okna.</param>
+        private void SetVertexDisplayCoordinates(Graph graph, double width, double height)
+        {
+            /// dodaje niezbędne marginesy
+            height = height - 100;
+            width = width - 100;
+
+            Point[] coordinates = new Point[graph.Vertices.Count];
+            for (int i = 0; i < graph.Vertices.Count; i++)
+                coordinates[i] = new Point();
+
+            Point center = new Point(height / 2, width / 2);
+            double radius;
+            if (height < width)
+                radius = height;
+            else radius = width;
+            radius /= 2;
+
+
+            double rotationAngle = 2 * Math.PI / graph.Vertices.Count; // wylicza kąt obrotu na okręgu;  
+
+            //kalkuluje współrzędne wszystkich punktów 
+            for (int i = 0; i < graph.Vertices.Count; i++)
+            {
+                coordinates[i].Y = center.X + radius * Math.Cos(i * rotationAngle);
+                coordinates[i].X = center.Y + radius * Math.Sin(i * rotationAngle);
+            }
+            for (int i = 0; i < graph.Vertices.Count; i++)
+            {
+                if (graph.Vertices[i].Coordinates.X != 0 || graph.Vertices[i].Coordinates.Y != 0)
+                    continue; //jeżeli wcześniej przypisano wierzchołkom współrzędne to nie przypisuj ich znowu
+                graph.Vertices[i].Coordinates = coordinates[i];
+            }
         }
     }
 }

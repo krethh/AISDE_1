@@ -65,6 +65,11 @@ namespace AISDE_1
         /// </summary>
         public override bool Equals(object obj)
         {
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+
             var other = obj as GraphPath;
             if (this.Count != other.Count) return false;
             if (this.TotalCost == Double.PositiveInfinity && other.TotalCost == Double.PositiveInfinity)

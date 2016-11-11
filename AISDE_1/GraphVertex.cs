@@ -12,7 +12,7 @@ namespace AISDE_1
         /// Haszmapa zawierająca sąsiadów danego wierzchołka jako klucze oraz ścieżki łączące
         /// ten wierzchołek z sąsiadami jako wartościl
         /// </summary>
-        private Dictionary<GraphVertex, Edge> Neighbors { get; }
+        public Dictionary<GraphVertex, Edge> Neighbors { get; }
 
         /// <summary>
         /// Dystans od startu - etykieta w algorytmie Dijkstry.
@@ -117,6 +117,11 @@ namespace AISDE_1
         private void OnDistanceChanged(EventArgs e)
         {
             CostToVertexChanged?.Invoke(this, e);
+        }
+
+        public double DistanceToVertex(GraphVertex other)
+        {
+            return Math.Sqrt(Math.Pow(Coordinates.X - other.Coordinates.X, 2) + Math.Pow(Coordinates.Y - other.Coordinates.Y, 2));
         }
     }
 }
