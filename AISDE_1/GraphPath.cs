@@ -20,8 +20,7 @@ namespace AISDE_1
         {
             get
             {
-                /// Jeżeli koszt = 0 (czyli domyślny) to wylicz koszt na podstawie wierzchołków. W przeciwnym wypadku zwróć wcześniej wyliczony koszt.
-                return (_totalCost == 0 ? _totalCost = CalculateCost() : _totalCost);
+                return _totalCost = CalculateCost();
             }
             set
             {
