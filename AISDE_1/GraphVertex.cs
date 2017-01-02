@@ -25,6 +25,11 @@ namespace AISDE_1
         }
 
         /// <summary>
+        /// Mówi, czy dany wierzchołek jest centralą w sieci dostępowej.
+        /// </summary>
+        public bool IsCentral { get; set; } = false;
+
+        /// <summary>
         /// Położenie danego wierzchołka na mapie.
         /// </summary>
         public Point Coordinates { get; set; }
