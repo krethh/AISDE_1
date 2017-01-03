@@ -6,6 +6,8 @@ namespace AISDE_1
     /// <summary>
     /// Prymitywnie zaimplementowana kolejka priorytetowa, używana w algorytmie Dijkstry i MST.
     /// </summary>
+   
+    [Obsolete("Zamiast tego PriorityQueueHeap", true)]
     public class PriorityQueue<T> where T : IComparable<T>
     {
         private List<T> data;

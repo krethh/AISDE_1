@@ -46,7 +46,9 @@ namespace AISDE_1
         {
             try
             {
-                GraphDisplayWindow graphWindow = new GraphDisplayWindow { graph = Graph.ReadGraph(TextFileDirectoryTextBox.Text) };
+                var graph = Graph.ReadGraph(TextFileDirectoryTextBox.Text);
+                graph.GenerateStartingSolution();
+                GraphDisplayWindow graphWindow = new GraphDisplayWindow { GraphToDisplay = graph };
                 graphWindow.DisplayGraph();
                 graphWindow.Show();
             }

@@ -30,6 +30,11 @@ namespace AISDE_1
         public bool IsCentral { get; set; } = false;
 
         /// <summary>
+        /// Mówi, ile klientów jest w węźle sieci dostępowej.
+        /// </summary>
+        public int ClientsNumber { get; set; } = 0;
+
+        /// <summary>
         /// Położenie danego wierzchołka na mapie.
         /// </summary>
         public Point Coordinates { get; set; }
@@ -98,7 +103,7 @@ namespace AISDE_1
                 return 0;
             if (!Neighbors.ContainsKey(end2))
                 return Double.PositiveInfinity;
-            else return Neighbors[end2].Cost;
+            else return Neighbors[end2].DiggingCost;
         }
 
         public int CompareTo(GraphVertex other)

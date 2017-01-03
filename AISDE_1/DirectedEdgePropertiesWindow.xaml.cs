@@ -25,12 +25,12 @@ namespace AISDE_1
         {
             this.EdgeBeingChanged = EdgeBeingChanged;
             InitializeComponent();
-            costValueTextBox.Text = EdgeBeingChanged.Cost.ToString();
+            costValueTextBox.Text = EdgeBeingChanged.DiggingCost.ToString();
         }
 
         private void ok_button_Click(object sender, RoutedEventArgs e)
         {
-            EdgeBeingChanged.Cost = Double.Parse(costValueTextBox.Text);
+            EdgeBeingChanged.DiggingCost = Double.Parse(costValueTextBox.Text);
             this.Close();
         }
 

@@ -25,6 +25,11 @@ namespace AISDE_1
         /// </summary>
         public bool WasFloydCalculated { get; set; }
 
+        /// <summary>
+        /// Wierzchołek będący centralą sieci dostępowej.
+        /// </summary>
+        public GraphVertex CentralVertex { get; set; } = null;
+
         public Graph()
         {
             Vertices = new List<GraphVertex>();
@@ -289,7 +294,7 @@ namespace AISDE_1
                 return tree;
 
             tree.AddVertex(Vertices[0]);
-            PriorityQueue<Edge> possibleEdges = new PriorityQueue<Edge>(); // najbliższą możliwą ścieżkę dobieramy kolejką priorytetową
+            PriorityQueueHeap<Edge> possibleEdges = new PriorityQueueHeap<Edge>(); // najbliższą możliwą ścieżkę dobieramy kolejką priorytetową
 
             foreach (var v in tree.Vertices[0].GetNeighbors())
                 possibleEdges.Enqueue(tree.Vertices[0].GetEdge(v));
@@ -334,53 +339,39 @@ namespace AISDE_1
             Graph graph = new Graph();
             string currentLine = fileLines[1];
             int i = 1;
-          
-            while(!currentLine.Contains("LACZA"))
-            {
-                var numbers = currentLine.Split(null); // rozdziela według spacji
-                graph.AddVertex(new GraphVertex { Coordinates = new Point(Double.Parse(numbers[1]), Double.Parse(numbers[2])) });
 
+            while (!currentLine.Contains("KRAWEDZIE"))
+            {
+                var numbers = currentLine.Split(null);
+                graph.AddVertex(new GraphVertex { ID = int.Parse(numbers[0]), Coordinates = new Point { X = double.Parse(numbers[1]), Y = double.Parse(numbers[2]) },
+                    IsCentral = numbers[3] == "-1" ? true : false, ClientsNumber = numbers[3] == "-1" ? 0 : int.Parse(numbers[3]) });
                 currentLine = fileLines[++i];
             }
-
-            while (!currentLine.Contains("LACZA"))
-                currentLine = fileLines[++i];
-
             currentLine = fileLines[++i];
 
-            while (!currentLine.Contains("ALGORYTM"))
+            while (!currentLine.Contains("KABLE"))
             {
                 var numbers = currentLine.Split(null);
-                graph.AddEdge(graph.Vertices[ Int32.Parse(numbers[1]) -1], graph.Vertices[ Int32.Parse(numbers[2]) -1],  double.Parse(numbers[3]));
+                graph.AddTwoWayEdge(graph.Vertices[int.Parse(numbers[1]) - 1], graph.Vertices[int.Parse(numbers[2]) - 1], double.Parse(numbers[3]));
+                currentLine = fileLines[++i];
+            }
+            currentLine = fileLines[++i];
+
+            List<int> CableCosts = new List<int>();
+            List<int> CableCounts = new List<int>();
+            while(i < fileLines.Count)
+            {
+                var numbers = currentLine.Split(null);
+                CableCounts.Add(int.Parse(numbers[1]));
+                CableCosts.Add(int.Parse(numbers[2]));
+                if (i == fileLines.Count - 1)
+                    break;
                 currentLine = fileLines[++i];
             }
 
-            if(currentLine.Contains("SCIEZKA"))
-            {
-                currentLine = fileLines[++i];
-                var numbers = currentLine.Split(null);
-                System.IO.StreamWriter output = new System.IO.StreamWriter("C:\\Users\\Paweł Kulig\\Desktop\\output.txt");
-                var start = graph.Vertices.Find(v => v.ID == int.Parse(numbers[0]));
-                var end = graph.Vertices.Find(v => v.ID == int.Parse(numbers[1]));
-                output.Write(graph.Dijkstra(start, end));
-                output.Close();
-            }
+            Edge.CableCosts = CableCosts.ToArray();
+            Edge.CableCounts = CableCounts.ToArray();
 
-            if(currentLine.Contains("FLOYD"))
-            {
-                graph.Floyd();
-                System.IO.StreamWriter output = new System.IO.StreamWriter("C:\\Users\\Paweł Kulig\\Desktop\\output.txt");
-                while(currentLine != "" && i != fileLines.Count -1)
-                {
-                    currentLine = fileLines[++i];
-                    var numbers = currentLine.Split(null);
-                    var start = graph.Vertices.Find(v => v.ID == int.Parse(numbers[0]));
-                    var end = graph.Vertices.Find(v => v.ID == int.Parse(numbers[1]));
-                    output.WriteLine(graph.FloydPaths[new Tuple<GraphVertex, GraphVertex>(start, end)]);                    
-                }
-                output.Close();
-            }
-            
             return graph;
         }
 
@@ -391,6 +382,31 @@ namespace AISDE_1
         public void ResetFloydCalculatedFlag(object sender, EdgeChangedEventArgs e)
         {
             WasFloydCalculated = false;
+        }
+
+        /// <summary>
+        /// Znajduje wstępne rozwiązanie problemu optymalizacji sieci dostępowej.
+        /// </summary>
+        public void GenerateStartingSolution()
+        {
+            Floyd();
+            if (CentralVertex == null)
+                CentralVertex = Vertices.Find(v => v.IsCentral);
+
+            foreach (var v in Vertices)
+            {
+                var smallest = FindSmallestFittingCable(v.ClientsNumber);
+                int multiplier = (int)Math.Ceiling((double)v.ClientsNumber / (double)Edge.CableCounts[smallest]);
+
+                GraphPath pathToCentral = FloydPaths[new Tuple<GraphVertex, GraphVertex>(v, CentralVertex)];
+
+                for (int i = 0; i < multiplier; i++)
+                {
+                    pathToCentral.GetEdges().ForEach(e => e.AddCable(smallest));
+                }
+            }
+
+            GetEdges().ForEach(e => e.JoinCables());
         }
 
         public void RemoveEdge(Edge edge)
@@ -414,6 +430,22 @@ namespace AISDE_1
         {
             EdgeAdded?.Invoke(this, e);
         }
+
+        /// <summary>
+        /// Znajduje najmniejszy kabel, który trzeba położyć, żeby zmieścić daną liczbę kabli.
+        /// </summary>
+        /// <param name="numberOfWires"></param>
+        /// <returns>Index minimalnego rodzaju kabla.</returns>
+        private int FindSmallestFittingCable(int numberOfWires)
+        {
+            for (int i = 0; i < Edge.CableCounts.Length; i++)
+            {
+                if (Edge.CableCounts[i] > numberOfWires)
+                    return i;
+            }
+            return Edge.CableCounts.Length - 1;
+        }
+      
 
     }
 }

@@ -19,7 +19,7 @@ namespace AISDE_1
     /// </summary>
     public partial class GraphDisplayWindow : Window
     {
-        public Graph graph { get; set; }
+        public Graph GraphToDisplay { get; set; }
         public Dictionary<GraphVertex, Ellipse> VertexToShape { get; set; } // mapuje wierzchołki do kółek na ekranie
         public Dictionary<Ellipse, GraphVertex> ShapeToVertex { get; set; } // robi na odwrót niż powyżej.
         public Dictionary<Edge, Line> EdgeToShape { get; set; } // mapuje krawędzie do kresek na ekranie
@@ -50,9 +50,9 @@ namespace AISDE_1
 
         public void DisplayGraph()
         {
-            SetVertexDisplayCoordinates(graph, 1200, 768);
+            SetVertexDisplayCoordinates(GraphToDisplay, 1200, 768);
 
-            foreach (var vertex in graph.Vertices)
+            foreach (var vertex in GraphToDisplay.Vertices)
             {
                 foreach (var neighbor in vertex.GetNeighbors())
                 {
@@ -78,7 +78,7 @@ namespace AISDE_1
                 }
             }
 
-            foreach (var v in graph.Vertices)
+            foreach (var v in GraphToDisplay.Vertices)
             {
                 var ellipse = new Ellipse();
 
@@ -96,6 +96,12 @@ namespace AISDE_1
                 ellipse.Width = 20;
                 ellipse.Height = 20;
 
+                if(v.IsCentral)
+                {
+                    ellipse.Width += 10;
+                    ellipse.Height += 10;
+                }
+
                 Canvas.SetLeft(ellipse, v.Coordinates.X);
                 Canvas.SetTop(ellipse, v.Coordinates.Y);
 
@@ -107,10 +113,11 @@ namespace AISDE_1
             /// potrzebne do obsługi łącz nieskierowanych; jeżeli łącze jest nieskierowane to ma większą nieprzezroczystość;
             /// dzięki temu kolorowanie ścieżek jest widoczne zawsze. Gdyby tego nie było, to pokolorowana ścieżka 1=>2 mogłaby
             /// się schować pod niekolorowaną ścieżką 2=>1.
+            /// Dla krawędzi, którymi nie jest prowadzony żaden kabel, ściezka jest prawie przezroczysta.
             foreach (var edge in EdgeToShape.Keys)
             {
                 if (edge.End2.HasEdgeTo(edge.End1))
-                    EdgeToShape[edge].Opacity = 0.5;
+                    EdgeToShape[edge].Opacity = edge.GetCables().Count == 0 ? 0.1 : 0.5;
             }
         }
 
@@ -202,16 +209,16 @@ namespace AISDE_1
             RectangleDisplayed = rect;
 
             Canvas.SetLeft(rect, pos.X);
-            Canvas.SetTop(rect, pos.Y - 50);
+            Canvas.SetTop(rect, pos.Y - 65);
             rect.Fill = Brushes.LightYellow;
             rect.StrokeThickness = 1;
             rect.Stroke = Brushes.Black;
             rect.Width = line != null ?
                     (line.IsUndirected() ?
-                        (line.Cost > line.End2.GetEdge(line.End1).Cost ? 100 + line.Cost.ToString().Length * 6.5
-                : line.End2.GetEdge(line.End1).Cost.ToString().Length * 6.5 + 100) : 100 + line.Cost.ToString().Length * 6.5) : 40; //wylicza długość etykiety
+                        (line.DiggingCost > line.End2.GetEdge(line.End1).DiggingCost ? 100 + line.DiggingCost.ToString().Length * 6.5
+                : line.End2.GetEdge(line.End1).DiggingCost.ToString().Length * 6.5 + 100) : 100 + line.DiggingCost.ToString().Length * 6.5) : 40; //wylicza długość etykiety
 
-            rect.Height = (sender.GetType() == typeof(Line) && line.IsUndirected()) ? 34 : 17; // dla nieskierowanego łącza potrzeba wyższej etykiety
+            rect.Height = (sender.GetType() == typeof(Line) && line.IsUndirected()) ? 51 : 34; // dla nieskierowanego łącza potrzeba wyższej etykiety
 
             TextBlock text = new TextBlock();
             TextBlockDisplayed = text;
@@ -220,12 +227,15 @@ namespace AISDE_1
                 text.Text = "ID: " + vertex.ID.ToString();
             else
             {
-                text.Text = "V1: " + line.End1.ID.ToString() + ", V2: " + line.End2.ID.ToString() + ", c = " + line.Cost;
+                text.Text = "V1: " + line.End1.ID.ToString() + ", V2: " + line.End2.ID.ToString() + ", c = " + line.DiggingCost;
                 if (line.IsUndirected())
-                    text.Text += "\nV2: " + line.End2.ID.ToString() + ", V1: " + line.End1.ID.ToString() + ", c = " + line.End2.GetEdge(line.End1).Cost;
+                    text.Text += "\nV2: " + line.End2.ID.ToString() + ", V1: " + line.End1.ID.ToString() + ", c = " + line.End2.GetEdge(line.End1).DiggingCost;
+                var cablesString = "";
+                line.GetCables().ForEach(c => cablesString += Edge.CableCounts[c].ToString() + ", ");
+                text.Text += "\nCables: " + cablesString;
             }
             Canvas.SetLeft(text, pos.X + 2);
-            Canvas.SetTop(text, pos.Y - 50);
+            Canvas.SetTop(text, pos.Y - 65);
 
             canvas.Children.Add(rect);
             canvas.Children.Add(text);
@@ -304,7 +314,7 @@ namespace AISDE_1
             List<Line> lines = new List<Line>();
             var vertex = ShapeToVertex[ellipse];
 
-            foreach (var v in graph.Vertices)
+            foreach (var v in GraphToDisplay.Vertices)
             {
                 if (v.HasEdgeTo(vertex))
                 {
@@ -330,7 +340,7 @@ namespace AISDE_1
         /// </summary>
         private void mstButton_Click(object sender, RoutedEventArgs e)
         {
-            SpanningTree mst = graph.MinimumSpanningTree();
+            SpanningTree mst = GraphToDisplay.MinimumSpanningTree();
             if (mst == null)
             {
                 // jeżeli mst == null, znaczy, że nie istnieje drzewo rozpinające - funkcja MinimumSpanningTree grafu zwraca null.
@@ -350,7 +360,7 @@ namespace AISDE_1
             // wymaż z grafu wcześniej pomalowane ścieżki;
             RestoreDefaultColorsAndStartEndVertex();
 
-            GraphPath path = graph.Dijkstra(StartVertex, EndVertex);
+            GraphPath path = GraphToDisplay.Dijkstra(StartVertex, EndVertex);
             if (path.IsEmpty())
             {
                 MessageBox.Show("Ścieżka nie istnieje.", "Brak ścieżki", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -376,13 +386,13 @@ namespace AISDE_1
         /// </summary>
         private void floydPathButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!graph.WasFloydCalculated)
-                graph.Floyd();
+            if (!GraphToDisplay.WasFloydCalculated)
+                GraphToDisplay.Floyd();
 
             if (!AreCorrectPathParameters()) return;
             RestoreDefaultColorsAndStartEndVertex();
 
-            GraphPath path = graph.FloydPaths[new Tuple<GraphVertex, GraphVertex>(StartVertex, EndVertex)];
+            GraphPath path = GraphToDisplay.FloydPaths[new Tuple<GraphVertex, GraphVertex>(StartVertex, EndVertex)];
             if (path.IsEmpty())
             {
                 MessageBox.Show("Ścieżka nie istnieje.", "Brak ścieżki", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -413,9 +423,9 @@ namespace AISDE_1
         private void randomCostsButton_Click(object sender, RoutedEventArgs e)
         {
             Random random = new Random();
-            foreach (var v in graph.Vertices)
+            foreach (var v in GraphToDisplay.Vertices)
                 foreach (var n in v.GetNeighbors())
-                    v.GetEdge(n).Cost = random.Next(9) + 1;
+                    v.GetEdge(n).DiggingCost = random.Next(9) + 1;
         }
 
         /// <summary>
@@ -456,7 +466,6 @@ namespace AISDE_1
                 radius = height;
             else radius = width;
             radius /= 2;
-
 
             double rotationAngle = 2 * Math.PI / graph.Vertices.Count; // wylicza kąt obrotu na okręgu;  
 

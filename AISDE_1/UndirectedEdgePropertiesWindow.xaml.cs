@@ -29,14 +29,14 @@ namespace AISDE_1
             InitializeComponent();
             edge1TextBlock.Text = "V" + Edge1.End1.ID + " => " + "V" + Edge1.End2.ID;
             edge2TextBlock.Text = "V" + Edge2.End1.ID + " => " + "V" + Edge2.End2.ID;
-            edge1CostValue.Text = Edge1.Cost.ToString();
-            edge2CostValue.Text = Edge2.Cost.ToString();
+            edge1CostValue.Text = Edge1.DiggingCost.ToString();
+            edge2CostValue.Text = Edge2.DiggingCost.ToString();
         }
 
         private void ok_button_Click(object sender, RoutedEventArgs e)
         {
-            Edge1.Cost = double.Parse(edge1CostValue.Text);
-            Edge2.Cost = double.Parse(edge2CostValue.Text);
+            Edge1.DiggingCost = double.Parse(edge1CostValue.Text);
+            Edge2.DiggingCost = double.Parse(edge2CostValue.Text);
             this.Close();
         }
 
