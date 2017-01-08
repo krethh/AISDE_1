@@ -44,19 +44,25 @@ namespace AISDE_1
 
         private void LoadButton_Click(object sender, RoutedEventArgs e)
         {
-            try
+            //try
             {
                 var graph = Graph.ReadGraph(TextFileDirectoryTextBox.Text);
-                graph.GenerateStartingSolution();
+                graph.GenerateSolution();
+                graph.IntialSolutionCost = graph.CalculateNetworkCost();
+                Tuple<int, int> data = graph.SimulatedAnnealing();
+                var iterations = data.Item1;
+                var accepted = data.Item2;      
                 GraphDisplayWindow graphWindow = new GraphDisplayWindow { GraphToDisplay = graph };
                 graphWindow.DisplayGraph();
+                graphWindow.IterationsTextBlock.Text = iterations.ToString();
+                graphWindow.AcceptedTextBlock.Text = accepted.ToString();
                 graphWindow.Show();
             }
-            catch(Exception ex)
+           /* catch(Exception ex)
             {
                 System.Windows.MessageBox.Show(ex.Message, "Błąd!", MessageBoxButton.OK, MessageBoxImage.Exclamation);
                 return;
-            }
+            }*/
         }
 
     }

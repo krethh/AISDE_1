@@ -67,6 +67,7 @@
     <Compile Include="UndirectedEdgePropertiesWindow.xaml.cs">
       <DependentUpon>UndirectedEdgePropertiesWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Utils.cs" />
     <Page Include="DirectedEdgePropertiesWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

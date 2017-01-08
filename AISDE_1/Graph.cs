@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Windows;
 
 namespace AISDE_1
@@ -11,12 +12,17 @@ namespace AISDE_1
         /// <summary>
         /// Zbiór wierzchołków należących do grafu.
         /// </summary>
-        public List<GraphVertex> Vertices { get; }
+        public List<GraphVertex> Vertices { get; set; }
 
         /// <summary>
         /// Zbiór ścieżek wyliczonych w algorytmie Floyda. Każda para wierzchołków jest kluczem dla najkrótszej ścieżki.
         /// </summary>
         public Dictionary<Tuple<GraphVertex, GraphVertex>, GraphPath> FloydPaths { get; set; }
+
+        /// <summary>
+        /// Koszt pierwszego rozwiązania sieci, wyliczonego przed algorytmem symulowanego wyżarzania.
+        /// </summary>
+        public double IntialSolutionCost { get; set; } = 0;
 
         public double[,] FloydDistances { get; set; }
 
@@ -93,12 +99,6 @@ namespace AISDE_1
 
             if(!end1.Neighbors.ContainsKey(end2))
                 Vertices[fromIndex].AddEdge(Vertices[toIndex], cost);
-            OnEdgeAdded(new EventArgs());
-        }
-
-        public void AddEdge(GraphVertex end1, GraphVertex end2, Edge edge)
-        {
-            end1.Neighbors.Add(end2, edge);
             OnEdgeAdded(new EventArgs());
         }
 
@@ -385,35 +385,134 @@ namespace AISDE_1
         }
 
         /// <summary>
-        /// Znajduje wstępne rozwiązanie problemu optymalizacji sieci dostępowej.
+        /// Znajduje rozwiązanie problemu optymalizacji sieci dostępowej.
         /// </summary>
-        public void GenerateStartingSolution()
+        public void GenerateSolution()
         {
             Floyd();
             if (CentralVertex == null)
                 CentralVertex = Vertices.Find(v => v.IsCentral);
 
+            GetEdges().ForEach(e => e.RemoveCables());
             foreach (var v in Vertices)
             {
-                var smallest = FindSmallestFittingCable(v.ClientsNumber);
-                int multiplier = (int)Math.Ceiling((double)v.ClientsNumber / (double)Edge.CableCounts[smallest]);
-
-                GraphPath pathToCentral = FloydPaths[new Tuple<GraphVertex, GraphVertex>(v, CentralVertex)];
-
-                for (int i = 0; i < multiplier; i++)
-                {
-                    pathToCentral.GetEdges().ForEach(e => e.AddCable(smallest));
-                }
+                var smallest = Edge.OptimalCableSet(v.ClientsNumber);
+                GraphPath pathToCentral = FloydPaths[new Tuple<GraphVertex, GraphVertex> (v, CentralVertex)];
+                pathToCentral.GetEdges().ForEach(e => e.AddCables(smallest));              
             }
 
-            GetEdges().ForEach(e => e.JoinCables());
+            GetEdges().FindAll(e => e.GetCables().Count != 0).ForEach(ec => ec.JoinCables());
         }
 
+        /// <summary>
+        /// Przeprowadza algorytm symulowanego wyżarzania.
+        /// </summary>
+        /// <returns>1. Liczba iteracji przeprowadzonych w algorytmie, 2. Liczba zaakceptowanych lepszych rozwiązań. </returns>
+        public Tuple<int, int> SimulatedAnnealing()
+        {
+            Random random = new Random();
+            List<Edge> edges = GetEdges();
+            bool LastSolutionAccepted = false;
+
+            /// znajduje maksymalny koszt krawędzi
+            var maxCost = edges[0].DiggingCost;
+            edges.ForEach(e => maxCost = e.DiggingCost > maxCost ? e.DiggingCost : maxCost);
+
+            double temperature = 50000; // ustawiamy początkową temperaturę wyżarzania
+            double coolingFactor = 0.05; // o ile będziemy ochładzać system przy każdej iteracji. Dla T = 1e7 0.00016117 da 1e5 iteracji
+
+            Dictionary<GraphVertex, List<int>> OptimalCableSets = new Dictionary<GraphVertex, List<int>>();
+            Vertices.ForEach(v => OptimalCableSets.Add(v, Edge.OptimalCableSet(v.ClientsNumber)));
+
+            Dictionary<Edge, List<int>> CablesMap = new Dictionary<Edge, List<int>>();
+            edges.ForEach(e => CablesMap.Add(e, e.GetCables()));
+
+            List<GraphVertex> NonEmptyVertices = Vertices.FindAll(v => v.ClientsNumber != 0);
+
+            int it = 0, accepted = 0;
+
+            var oldNetworkCost = CalculateNetworkCost();
+
+            Stopwatch watch = new Stopwatch();
+
+            watch.Start();
+            while (temperature > 1 && watch.ElapsedMilliseconds < 1e4)
+            {
+                if(LastSolutionAccepted)
+                    oldNetworkCost = CalculateNetworkCost();
+
+                /// losuje losową krawędź i przypisuje jej losową wagę
+                var edge = edges[random.Next(edges.Count)];
+                var oldEdgeCost = edge.DiggingCost;
+
+                edge.DiggingCost = random.NextDouble() * 2 * maxCost; // przypisuje koszt krawędzi jako losową liczbę z przedziału (0, 2max)
+                edge.End2.GetEdge(edge.End1).DiggingCost = edge.DiggingCost;
+
+                List<Edge> modifiedEdges = new List<Edge>();
+
+                GenerateSolution();
+
+                edge.DiggingCost = oldEdgeCost;
+                edge.End2.GetEdge(edge.End1).DiggingCost = oldEdgeCost;
+
+                if (LastSolutionAccepted = IsAccepted(oldNetworkCost, CalculateNetworkCost(), temperature, random))
+                {
+                    accepted++;
+                    foreach (var e in GetEdges())
+                    {
+                        CablesMap[e] = e.GetCables();
+                    }
+                }
+
+                ///jeżeli ostatnie rozwiązanie nie zostało zaakceptowane, przywróć wcześniejsze rozwiązanie
+                if (!LastSolutionAccepted)
+                   foreach (var e in GetEdges())
+                   {
+                       e.RemoveCables();
+                       e.AddCables(CablesMap[e]);
+                   }
+
+                temperature *= (1 - coolingFactor);
+                it++;                
+            }
+            return new Tuple<int,int>(it, accepted);
+        }
+
+        /// <summary>
+        /// Mówi, czy dane rozwiązanie w problemie symulowanego wyżarzania zostanie zaakceptowane.
+        /// </summary>
+        /// <param name="oldEnergy">Obecna energia systemu.</param>
+        /// <param name="newEnergy">Energia systemu w rozwiązaniu proponowanym.</param>
+        /// <param name="temperature">Temperatura systemu.</param>
+        public bool IsAccepted(double oldEnergy, double newEnergy, double temperature, Random random)
+        {
+            if (newEnergy == oldEnergy)
+                return false;
+
+            if (newEnergy < oldEnergy)
+                return true;
+
+            else
+            {
+                if (Math.Exp((oldEnergy - newEnergy) / temperature) < random.NextDouble())
+                    return false;
+                else return true;
+            }
+        }
+
+        /// <summary>
+        /// Usuwa krawędź skierowaną z grafu.
+        /// </summary>
+        /// <param name="edge"></param>
         public void RemoveEdge(Edge edge)
         {
             edge.End1.Neighbors.Remove(edge.End2);
         }
 
+        /// <summary>
+        /// Znajduje listę wszystkich krawędzi należących do grafu.
+        /// </summary>
+        /// <returns>Lista wszystkich krawędzi należących do grafu.</returns>
         public List<Edge> GetEdges()
         {
             List<Edge> edges = new List<Edge>();
@@ -426,26 +525,17 @@ namespace AISDE_1
             return edges;
         }
 
+        public double CalculateNetworkCost()
+        {
+            double cost = 0;
+            GetEdges().ForEach(e => cost += e.TotalCost());
+            return cost;
+        }
+
         public void OnEdgeAdded(EventArgs e)
         {
             EdgeAdded?.Invoke(this, e);
         }
-
-        /// <summary>
-        /// Znajduje najmniejszy kabel, który trzeba położyć, żeby zmieścić daną liczbę kabli.
-        /// </summary>
-        /// <param name="numberOfWires"></param>
-        /// <returns>Index minimalnego rodzaju kabla.</returns>
-        private int FindSmallestFittingCable(int numberOfWires)
-        {
-            for (int i = 0; i < Edge.CableCounts.Length; i++)
-            {
-                if (Edge.CableCounts[i] > numberOfWires)
-                    return i;
-            }
-            return Edge.CableCounts.Length - 1;
-        }
-      
 
     }
 }

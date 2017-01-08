@@ -40,6 +40,11 @@ namespace AISDE_1
         public Point Coordinates { get; set; }
 
         /// <summary>
+        /// Służy do wyświetlania wierzchołka na grafie. Nie są używane do obliczania odległości.
+        /// </summary>
+        public Point DisplayCoordinates { get; set; }
+      
+        /// <summary>
         /// ID wierzchołka w danym grafie.
         /// </summary>
         public int ID { get; set; }
@@ -103,7 +108,7 @@ namespace AISDE_1
                 return 0;
             if (!Neighbors.ContainsKey(end2))
                 return Double.PositiveInfinity;
-            else return Neighbors[end2].DiggingCost;
+            else return Neighbors[end2].Length + Neighbors[end2].DiggingCost;
         }
 
         public int CompareTo(GraphVertex other)

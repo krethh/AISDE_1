@@ -12,6 +12,14 @@
             <Button x:Name="pathButton" Content="Dijkstra" Canvas.Left="25" Canvas.Top="67" Width="75" Click="pathButton_Click"/>
             <Button x:Name="floydPathButton" Content="Floyd" Canvas.Left="25" Canvas.Top="100" Width="75" Click="floydPathButton_Click"/>
             <Button x:Name="randomCostsButton" Content="Losowe wagi" Canvas.Left="25" Canvas.Top="135" Width="75" Click="randomCostsButton_Click"/>
+            <TextBlock x:Name="StartingSolutionTextBlock" Canvas.Left="1062" TextWrapping="Wrap" Text="0" Canvas.Top="22" Width="60"/>
+            <Label x:Name="StartingSolutionLabel" Content="Koszt rozwiązania początkowego:" Canvas.Left="832" Canvas.Top="17" Width="195"/>
+            <Label x:Name="CalculatedSolutionLabel" Content="Koszt rozwiązania optymalizowanego:" Canvas.Left="832" Canvas.Top="43"/>
+            <TextBlock x:Name="CalculatedSolutionTextBox" Canvas.Left="1062" TextWrapping="Wrap" Canvas.Top="48" Width="67" Text="0"/>
+            <Label x:Name="IterationsLabel" Content="Liczba iteracji:" Canvas.Left="832" Canvas.Top="67"/>
+            <TextBlock x:Name="IterationsTextBlock" Canvas.Left="1062" TextWrapping="Wrap" Canvas.Top="74" Text="0"/>
+            <Label x:Name="AcceptedLabel" Content="Zaakceptowane rozwiązania:" Canvas.Left="832" Canvas.Top="93"/>
+            <TextBlock x:Name="AcceptedTextBlock" Canvas.Left="1062" TextWrapping="Wrap" Text="0" Canvas.Top="98"/>
         </Canvas>
     </Grid>
 </Window>

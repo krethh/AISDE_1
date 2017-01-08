@@ -11,42 +11,7 @@ namespace AISDE_1.Tests
     [TestClass()]
     public class GraphTests
     {
-
         [TestMethod()]
-        public void FloydTest()
-        {
-            Graph testGraph = Graph.ReadGraph("C:\\Users\\Paweł Kulig\\Desktop\\Studia\\AISDE\\AiSDE_1\\AISDE_1\\test_graf_pełny.txt");
-            for (int i = 0; i < 200; i++)
-            {
-                Random random = new Random();
-                foreach (var v in testGraph.Vertices)
-                    foreach (var n in v.GetNeighbors())
-                        v.GetEdge(n).DiggingCost = random.Next(58) + 1;
-
-                testGraph.Floyd();
-
-                int index1 = random.Next(testGraph.Vertices.Count);
-                int index2 = random.Next(testGraph.Vertices.Count);
-
-                try
-                {
-                    Assert.AreEqual(testGraph.FloydPaths[new Tuple<GraphVertex, GraphVertex>(testGraph.Vertices[index1],
-                        testGraph.Vertices[index2])], testGraph.Dijkstra(testGraph.Vertices[index1],
-                        testGraph.Vertices[index2]));
-                }
-                catch(Exception)
-                {
-                    var path1 = testGraph.FloydPaths[new Tuple<GraphVertex, GraphVertex>(testGraph.Vertices[index1],
-                        testGraph.Vertices[index2])];
-                    var path2 = testGraph.Dijkstra(testGraph.Vertices[index1],
-                        testGraph.Vertices[index2]);
-
-                    Assert.AreEqual(path1.TotalCost, path2.TotalCost);
-                }
-            }
-        }
-
-        [TestMethod()]  
         public void DijkstraTest()
         {
             Graph testGraph = new Graph();
@@ -74,9 +39,81 @@ namespace AISDE_1.Tests
             Assert.AreEqual(testGraph.Dijkstra(testGraph.Vertices[3], testGraph.Vertices[1]), threeone);
             Assert.AreEqual(testGraph.Dijkstra(testGraph.Vertices[4], testGraph.Vertices[0]), fourzero);
             Assert.AreEqual(testGraph.Dijkstra(testGraph.Vertices[0], testGraph.Vertices[0]), zerozero);
-
-
         }
 
+        [TestMethod()]
+        public void SimulatedAnnealingTestCaseGeneration()
+        {
+            var nodes = 40;
+
+            Random random = new Random();
+            List<string> lines = new List<string>();
+
+            for (int i = 0; i < nodes; i++)
+            {
+                var first = random.Next(200) + 1;
+                var second = random.Next(200) + 1;
+                var clients = random.Next(25);
+
+                string str = first.ToString() + " " + second.ToString();
+                if (!lines.Contains(str))
+                    lines.Add(str + " " + clients.ToString());
+                else
+                {
+                    i--;
+                    continue;
+                }
+            }
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                lines[i] = (i + 1).ToString() + " " + lines[i];
+            }
+
+            System.IO.StreamWriter file = new System.IO.StreamWriter("C:\\Users\\Paweł Kulig\\Desktop\\Studia\\AISDE\\AISDE_1\\AISDE_1\\test.txt");
+            file.WriteLine("WEZLY");
+            lines[0] = "1 10 50 -1";
+            lines.ForEach(l => file.WriteLine(l));
+            file.WriteLine("KRAWEDZIE");
+            lines = new List<string>();
+
+            for (int i = 0; i < nodes * 5; i++)
+            {
+                var first = random.Next(nodes - 1) + 1;
+                var second = random.Next(nodes - 1) + 1;
+
+                if (first == second)
+                    while (first == second)
+                    {
+                        first = random.Next(nodes -1) + 1;
+                        second = random.Next(nodes - 1) + 1;
+                    }
+
+                string str = first.ToString() + " " + second.ToString();
+                string str2 = second.ToString() + " " + first.ToString();
+
+                if (!lines.Contains(str) && !lines.Contains(str2))
+                    lines.Add(str);
+            }
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                lines[i] = (i + 1).ToString() + " " + lines[i] + " " + (random.Next(9) + 1) * 10;
+            }
+           
+
+
+            lines.ForEach(l => file.WriteLine(l));
+
+            file.WriteLine("KABLE");
+            file.WriteLine("1 1 3");
+            file.WriteLine("2 2 5");
+            file.WriteLine("3 4 8");
+            file.WriteLine("4 10 18");
+            file.WriteLine("5 20 35");
+            file.WriteLine("6 50 70");
+
+            file.Close();
+        }
     }
 }

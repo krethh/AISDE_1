@@ -64,13 +64,13 @@ namespace AISDE_1
 
                     edge.Stroke = Brushes.Black;
 
-                    edge.X1 = vertex.Coordinates.X + 6.25; // +5 dla promienia wierzchołka
-                    edge.Y1 = vertex.Coordinates.Y + 6.25;
+                    edge.X1 = vertex.DisplayCoordinates.X + 6.25; // +5 dla promienia wierzchołka
+                    edge.Y1 = vertex.DisplayCoordinates.Y + 6.25;
 
-                    edge.X2 = neighbor.Coordinates.X + 6.25;
-                    edge.Y2 = neighbor.Coordinates.Y + 6.25;
+                    edge.X2 = neighbor.DisplayCoordinates.X + 6.25;
+                    edge.Y2 = neighbor.DisplayCoordinates.Y + 6.25;
 
-                    edge.StrokeThickness = (toDraw.IsUndirected() ? 5.0 : 2.5); // jeżeli krawędź nieskierowana, to pomaluj ją grubiej
+                    edge.StrokeThickness = (toDraw.IsUndirected() ? 2.0 : 1.0); // jeżeli krawędź nieskierowana, to pomaluj ją grubiej
 
                     canvas.Children.Add(edge);
                     EdgeToShape.Add(toDraw, edge);
@@ -93,8 +93,8 @@ namespace AISDE_1
                 ellipse.HorizontalAlignment = HorizontalAlignment.Left;
                 ellipse.VerticalAlignment = VerticalAlignment.Top;
 
-                ellipse.Width = 20;
-                ellipse.Height = 20;
+                ellipse.Width = 5;
+                ellipse.Height = 5;
 
                 if(v.IsCentral)
                 {
@@ -102,8 +102,8 @@ namespace AISDE_1
                     ellipse.Height += 10;
                 }
 
-                Canvas.SetLeft(ellipse, v.Coordinates.X);
-                Canvas.SetTop(ellipse, v.Coordinates.Y);
+                Canvas.SetLeft(ellipse, v.DisplayCoordinates.X);
+                Canvas.SetTop(ellipse, v.DisplayCoordinates.Y);
 
                 canvas.Children.Add(ellipse);
                 VertexToShape.Add(v, ellipse);
@@ -119,6 +119,8 @@ namespace AISDE_1
                 if (edge.End2.HasEdgeTo(edge.End1))
                     EdgeToShape[edge].Opacity = edge.GetCables().Count == 0 ? 0.1 : 0.5;
             }
+            StartingSolutionTextBlock.Text = Utils.Truncate(GraphToDisplay.IntialSolutionCost.ToString(), 8);
+            CalculatedSolutionTextBox.Text = Utils.Truncate(GraphToDisplay.CalculateNetworkCost().ToString(), 8);
         }
 
         /// <summary>
@@ -215,8 +217,8 @@ namespace AISDE_1
             rect.Stroke = Brushes.Black;
             rect.Width = line != null ?
                     (line.IsUndirected() ?
-                        (line.DiggingCost > line.End2.GetEdge(line.End1).DiggingCost ? 100 + line.DiggingCost.ToString().Length * 6.5
-                : line.End2.GetEdge(line.End1).DiggingCost.ToString().Length * 6.5 + 100) : 100 + line.DiggingCost.ToString().Length * 6.5) : 40; //wylicza długość etykiety
+                        (line.DiggingCost > line.End2.GetEdge(line.End1).DiggingCost ? 150 + line.DiggingCost.ToString().Length * 8.5
+                : line.End2.GetEdge(line.End1).DiggingCost.ToString().Length * 8.5 + 150) : 150 + line.DiggingCost.ToString().Length * 8.5) : 70; //wylicza długość etykiety
 
             rect.Height = (sender.GetType() == typeof(Line) && line.IsUndirected()) ? 51 : 34; // dla nieskierowanego łącza potrzeba wyższej etykiety
 
@@ -224,7 +226,7 @@ namespace AISDE_1
             TextBlockDisplayed = text;
 
             if (vertex != null)
-                text.Text = "ID: " + vertex.ID.ToString();
+                text.Text = "ID: " + vertex.ID.ToString() + (vertex.IsCentral ? "\nCentral" : "\nClients: " + vertex.ClientsNumber.ToString());
             else
             {
                 text.Text = "V1: " + line.End1.ID.ToString() + ", V2: " + line.End2.ID.ToString() + ", c = " + line.DiggingCost;
@@ -232,7 +234,9 @@ namespace AISDE_1
                     text.Text += "\nV2: " + line.End2.ID.ToString() + ", V1: " + line.End1.ID.ToString() + ", c = " + line.End2.GetEdge(line.End1).DiggingCost;
                 var cablesString = "";
                 line.GetCables().ForEach(c => cablesString += Edge.CableCounts[c].ToString() + ", ");
-                text.Text += "\nCables: " + cablesString;
+                if (line.IsUndirected())
+                    line.End2.GetEdge(line.End1).GetCables().ForEach(c => cablesString += Edge.CableCounts[c].ToString() + ", ");
+                text.Text += "\nCables: " + cablesString + " length: " + Utils.Truncate(line.Length.ToString(), 4);
             }
             Canvas.SetLeft(text, pos.X + 2);
             Canvas.SetTop(text, pos.Y - 65);
@@ -418,7 +422,7 @@ namespace AISDE_1
         }
 
         /// <summary>
-        /// Ustawia wagi wszystkich łączy na losową liczbę z przedziału 0-10.
+        /// Ustawia wagi wszystkich łączy na losową liczbę z przedziału 1-10.
         /// </summary>
         private void randomCostsButton_Click(object sender, RoutedEventArgs e)
         {
@@ -477,9 +481,9 @@ namespace AISDE_1
             }
             for (int i = 0; i < graph.Vertices.Count; i++)
             {
-                if (graph.Vertices[i].Coordinates.X != 0 || graph.Vertices[i].Coordinates.Y != 0)
+                if (graph.Vertices[i].DisplayCoordinates.X != 0 || graph.Vertices[i].DisplayCoordinates.Y != 0)
                     continue; //jeżeli wcześniej przypisano wierzchołkom współrzędne to nie przypisuj ich znowu
-                graph.Vertices[i].Coordinates = coordinates[i];
+                graph.Vertices[i].DisplayCoordinates = coordinates[i];
             }
         }
     }

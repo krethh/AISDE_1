@@ -25,11 +25,37 @@ namespace AISDE_1
             return new List<int>(Cables);
         }
 
+        /// <summary>
+        /// Usuwa wszystkie kable z danej krawędzi.
+        /// </summary>
+        public void RemoveCables()
+        {
+            Cables = new List<int>();
+        }
+
+        /// <summary>
+        /// Dodaje kabel o podanym indeksie do krawędzi.
+        /// </summary>
+        /// <param name="index">Indeks kabla, który chcemy dodać.</param>
         public void AddCable(int index)
         {
             if (index > CableCosts.Length - 1 || index < 0)
                 throw new Exception("Zbyt duży lub zbyt mały index kabla");
             Cables.Add(index);
+        }
+
+        /// <summary>
+        /// Dodaje kable o podanych indeksach do krawędzi.
+        /// </summary>
+        /// <param name="indexes">Lista indeksów kabli, które chcemy dodać.</param>
+        public void AddCables(List<int> indexes)
+        {
+            foreach (var index in indexes)
+            {
+                if (index > CableCosts.Length - 1 || index < 0)
+                    throw new Exception("Zbyt duży lub zbyt mały index kabla");
+                Cables.Add(index);
+            }
         }
 
         /// <summary>
@@ -47,8 +73,10 @@ namespace AISDE_1
         /// </summary>
         public double TotalCost()
         {
+            if (Cables.Count == 0)
+                return 0;
             double sum = 0;
-            Cables.ForEach(c => sum += CableCosts[c]);
+            Cables.ForEach(c => sum += CableCosts[c]*Length);
             return sum +DiggingCost;
         }
 
@@ -84,10 +112,20 @@ namespace AISDE_1
         /// </summary>
         public void JoinCables()
         {
+            Cables = OptimalCableSet(WireCount());
+        }
+
+        /// <summary>
+        /// Zwraca optymalny zestaw kabli, który można położyć na danej krawędzi.
+        /// </summary>
+        /// <param name="numberOfCables">Dla ilu kabli należy policzyć optymalny zestaw kabli.</param>
+        /// <returns>Lista indeksów kabli, które tworzą optymalny zestaw.</returns>
+        public static List<int> OptimalCableSet(int numberOfCables)
+        {
             List<int> newCables = new List<int>();
-            int wiresLeft = WireCount();
+            int wiresLeft = numberOfCables;
             int lastIndex = CableCounts.Length - 1;
-            while( wiresLeft > 0)
+            while (wiresLeft > 0)
             {
                 for (int i = lastIndex; i >= 0; i--, lastIndex--)
                 {
@@ -97,7 +135,7 @@ namespace AISDE_1
                 newCables.Add(lastIndex);
                 wiresLeft -= CableCounts[lastIndex];
             }
-            Cables = newCables;
+            return newCables;
         }
 
         public Edge(GraphVertex end1, GraphVertex end2, double cost)
@@ -110,10 +148,21 @@ namespace AISDE_1
             this.DiggingCost = cost;
         }
 
+        /// <summary>
+        /// Zwraca długość krawędzi, rozumianą jako odległość w linii prostej pomiędzy wierzchołkami.
+        /// </summary>
+        public double Length
+        {
+            get
+            {
+                return End1.DistanceToVertex(End2);
+            }
+        }
+
         // porównujemy krawędzie za pomocą ich wag
         public int CompareTo(Edge other)
         {
-            if (DiggingCost <= other.DiggingCost) return -1;
+            if (DiggingCost + Length <= other.Length + other.DiggingCost) return -1;
             else return 1;
         }
 
