@@ -50,8 +50,8 @@ namespace AISDE_1
 
         public void DisplayGraph()
         {
-            SetVertexDisplayCoordinates(GraphToDisplay, 1200, 768);
-
+            var it = 0;
+           // SetVertexDisplayCoordinates(GraphToDisplay, 1200, 768);
             foreach (var vertex in GraphToDisplay.Vertices)
             {
                 foreach (var neighbor in vertex.GetNeighbors())
@@ -64,17 +64,18 @@ namespace AISDE_1
 
                     edge.Stroke = Brushes.Black;
 
-                    edge.X1 = vertex.DisplayCoordinates.X + 6.25; // +5 dla promienia wierzchołka
-                    edge.Y1 = vertex.DisplayCoordinates.Y + 6.25;
+                    edge.X1 = vertex.Coordinates.X + 6.25; // +5 dla promienia wierzchołka
+                    edge.Y1 = vertex.Coordinates.Y + 6.25;
 
-                    edge.X2 = neighbor.DisplayCoordinates.X + 6.25;
-                    edge.Y2 = neighbor.DisplayCoordinates.Y + 6.25;
+                    edge.X2 = neighbor.Coordinates.X + 6.25;
+                    edge.Y2 = neighbor.Coordinates.Y + 6.25;
 
                     edge.StrokeThickness = (toDraw.IsUndirected() ? 2.0 : 1.0); // jeżeli krawędź nieskierowana, to pomaluj ją grubiej
 
                     canvas.Children.Add(edge);
                     EdgeToShape.Add(toDraw, edge);
                     ShapeToEdge.Add(edge, toDraw);
+                    it++;
                 }
             }
 
@@ -86,7 +87,7 @@ namespace AISDE_1
                 ellipse.MouseEnter += shape_MouseEnter;
                 ellipse.MouseLeave += shape_MouseLeave;
                 ellipse.MouseRightButtonDown += ellipse_MouseRightDown;
-
+                
                 ellipse.Stroke = System.Windows.Media.Brushes.Black;
                 ellipse.StrokeThickness = 1;
                 ellipse.Fill = System.Windows.Media.Brushes.DarkBlue;
@@ -102,8 +103,8 @@ namespace AISDE_1
                     ellipse.Height += 10;
                 }
 
-                Canvas.SetLeft(ellipse, v.DisplayCoordinates.X);
-                Canvas.SetTop(ellipse, v.DisplayCoordinates.Y);
+                Canvas.SetLeft(ellipse, v.Coordinates.X);
+                Canvas.SetTop(ellipse, v.Coordinates.Y);
 
                 canvas.Children.Add(ellipse);
                 VertexToShape.Add(v, ellipse);

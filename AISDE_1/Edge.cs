@@ -14,6 +14,8 @@ namespace AISDE_1
 
         public static int[] CableCosts { get; set; } = { 4, 7, 10, 12, 20, 30, 35, 60 };
         public static int[] CableCounts { get; set; } = { 2, 4, 6, 8, 16, 24, 32, 64 };
+        public static Dictionary<int, List<int>> CableMap { get; set; } = new Dictionary<int, List<int>>();
+        
 
         /// <summary>
         /// Lista kabli, które są położone na danej krawędzi - kabel jest reprezentowany przez indeks w CableCosts i CableCounts, tzn. dodanie "0" do listy odpowiada dodaniu kabla o dwóch włóknach i koszcie 4.
@@ -122,20 +124,7 @@ namespace AISDE_1
         /// <returns>Lista indeksów kabli, które tworzą optymalny zestaw.</returns>
         public static List<int> OptimalCableSet(int numberOfCables)
         {
-            List<int> newCables = new List<int>();
-            int wiresLeft = numberOfCables;
-            int lastIndex = CableCounts.Length - 1;
-            while (wiresLeft > 0)
-            {
-                for (int i = lastIndex; i >= 0; i--, lastIndex--)
-                {
-                    if (CableCounts[i] <= wiresLeft)
-                        break;
-                }
-                newCables.Add(lastIndex);
-                wiresLeft -= CableCounts[lastIndex];
-            }
-            return newCables;
+            return new List<int>(CableMap[numberOfCables]);
         }
 
         public Edge(GraphVertex end1, GraphVertex end2, double cost)

@@ -24,12 +24,12 @@ namespace AISDE_1
         /// </summary>
         public double IntialSolutionCost { get; set; } = 0;
 
-        public double[,] FloydDistances { get; set; }
+        public double[][] FloydDistances { get; set; }
 
         /// <summary>
         /// Mówi, czy był już wywoływany algorytm Floyda.
         /// </summary>
-        public bool WasFloydCalculated { get; set; }
+        public bool WasFloydCalculated { get; set; } = false;
 
         /// <summary>
         /// Wierzchołek będący centralą sieci dostępowej.
@@ -201,31 +201,39 @@ namespace AISDE_1
         /// </summary>
         public void Floyd()
         {
+
             /// przy pierwszym wywołaniu algorytmu Floyda ustawia zdarzenie, które resetuje flagę wyliczenia floyda na wypadek zmiany wagi któregoś łącza
             /// Jest to zrobione tutaj, ponieważ nie wiemy, czy będziemy w ogóle korzystać z algorytmu Floyda
             Edge.CostChanged += ResetFloydCalculatedFlag;
             FloydPaths = new Dictionary<Tuple<GraphVertex, GraphVertex>, GraphPath>();
 
-            double[,] distances = new double[Vertices.Count, Vertices.Count];
-            GraphVertex[,] predecessors = new GraphVertex[Vertices.Count, Vertices.Count];
+            double[][] distances = new double[Vertices.Count][];
+            for(int i=0;i<Vertices.Count;i++)
+                distances[i]=new double[Vertices.Count];
+
+            GraphVertex[][] predecessors = new GraphVertex[Vertices.Count][];
+            for (int i = 0; i < Vertices.Count; i++)
+            {
+                predecessors[i] = new GraphVertex[Vertices.Count];
+            }
 
             for (int i = 0; i < Vertices.Count; i++)
                 for (int j = 0; j < Vertices.Count; j++)
-                    distances[i, j] = Vertices[i].CostToVertex(Vertices[j]);
+                    distances[i][j] = Vertices[i].CostToVertex(Vertices[j]);
 
             for (int i = 0; i < Vertices.Count; i++)
                 for (int j = 0; j < Vertices.Count; j++)
-                    if (distances[i, j] != double.PositiveInfinity)
-                        predecessors[i, j] = Vertices[i];
+                    if (distances[i][j] != double.PositiveInfinity)
+                        predecessors[i][j] = Vertices[i];
 
-
-            for (int i = 0; i < Vertices.Count; i++)
-                for (int j = 0; j < Vertices.Count; j++)
-                    for (int k = 0; k < Vertices.Count; k++)
-                        if (distances[j, i] + distances[i, k] < distances[j, k])
+            int n = Vertices.Count;
+            for (int i = 0; i < n; i++)
+                for (int j = 0; j < n; j++)
+                    for (int k = 0; k < n; k++)
+                        if (distances[j][i] + distances[i][k] < distances[j][k])
                         {
-                            distances[j, k] = distances[j, i] + distances[i, k];
-                            predecessors[j, k] = predecessors[i, k];
+                            distances[j][ k] = distances[j][ i] + distances[i][k];
+                            predecessors[j][k] = predecessors[i][k];
                         }
 
             for (int i = 0; i < Vertices.Count; i++)
@@ -240,7 +248,7 @@ namespace AISDE_1
                     }
 
                     GraphPath path = new GraphPath();
-                    var throughVertex = predecessors[i, j];
+                    var throughVertex = predecessors[i][j];
 
                     /// brak wpisu w tablicy poprzedników oznacza, że nie ma ścieżki
                     if (throughVertex == null)
@@ -265,7 +273,7 @@ namespace AISDE_1
         /// <param name="alreadyDone">Ścieżka obliczona w poprzednim wywołaniu rekurencyjnym.</param>
         /// <param name="isFirstGo">Flaga mówiąca, czy funkcja wywoływana jest pierwszy raz, czy rekurencyjnie.</param>
         /// <returns>Najkrótszą ścieżkę pomiędzy wskazaną parą wierzczhołków.</returns>
-        private GraphPath ReconstructPath(GraphVertex start, GraphVertex end, GraphVertex[,] predecessors, GraphPath alreadyDone, bool isFirstGo)
+        private GraphPath ReconstructPath(GraphVertex start, GraphVertex end, GraphVertex[][] predecessors, GraphPath alreadyDone, bool isFirstGo)
         {
             GraphPath path = new GraphPath();
 
@@ -274,9 +282,9 @@ namespace AISDE_1
                 path.Add(start);
 
             GraphVertex throughVertex = start;
-            while(throughVertex != predecessors[throughVertex.ID - 1, end.ID -1 ])
+            while(throughVertex != predecessors[throughVertex.ID - 1][ end.ID -1 ])
             {  
-                 path = path.Combine(ReconstructPath(throughVertex, predecessors[throughVertex.ID - 1, end.ID - 1], predecessors, path, false));
+                 path = path.Combine(ReconstructPath(throughVertex, predecessors[throughVertex.ID - 1][ end.ID - 1], predecessors, path, false));
                  throughVertex = path[path.Count - 1];
             }
 
@@ -372,8 +380,53 @@ namespace AISDE_1
             Edge.CableCosts = CableCosts.ToArray();
             Edge.CableCounts = CableCounts.ToArray();
 
+            int sum = 1;
+            graph.Vertices.ForEach(v => sum += v.ClientsNumber);
+            List<int>[,] res = new List<int>[Edge.CableCounts.Length, sum+1];
+
+            int[,] tab = new int[Edge.CableCounts.Length, sum+1];
+
+            for (int k = 0; k < Edge.CableCounts.Length; k++)
+            {
+                for (int j = 1; j <= sum; j++)
+                {
+                    int cost1 = 0;
+                    if (k == 0)
+                        cost1 = int.MaxValue;
+                    else
+                        cost1 = tab[k - 1, j];
+                    int cost2 = 0;
+                    if (j - Edge.CableCounts[k] < 0)
+                        cost2 = 0;
+                    else
+                        cost2 = tab[k, j - Edge.CableCounts[k]];
+                    cost2 += Edge.CableCosts[k];
+                    if (cost2 > cost1)
+                    {
+                        tab[k, j] = cost1;
+                        res[k, j] = res[k - 1, j];
+                    }
+                    else
+                    {
+                        tab[k, j] = cost2;
+                        res[k, j] = new List<int>();
+                        if(j - Edge.CableCounts[k] > 0)
+                            res[k, j].AddRange(res[k, j - Edge.CableCounts[k]]);
+                        res[k, j].Add(k);
+                    }                         
+                }
+            }
+
+            res[Edge.CableCounts.Length - 1, 0] = new List<int>();
+
+            for (int k = 0; k < sum; k++)
+            {
+                Edge.CableMap.Add(k, res[Edge.CableCounts.Length - 1, k]);
+            }
+    
             return graph;
         }
+
 
         /// <summary>
         /// Jeżeli zostanie zmieniona waga jakiegoś łącza, to ustaw flagę "obliczono Floyda" na false,
@@ -389,7 +442,8 @@ namespace AISDE_1
         /// </summary>
         public void GenerateSolution()
         {
-            Floyd();
+            if(!WasFloydCalculated)
+                Floyd();
             if (CentralVertex == null)
                 CentralVertex = Vertices.Find(v => v.IsCentral);
 
@@ -400,8 +454,6 @@ namespace AISDE_1
                 GraphPath pathToCentral = FloydPaths[new Tuple<GraphVertex, GraphVertex> (v, CentralVertex)];
                 pathToCentral.GetEdges().ForEach(e => e.AddCables(smallest));              
             }
-
-            GetEdges().FindAll(e => e.GetCables().Count != 0).ForEach(ec => ec.JoinCables());
         }
 
         /// <summary>

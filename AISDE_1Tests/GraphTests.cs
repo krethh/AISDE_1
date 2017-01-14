@@ -44,15 +44,15 @@ namespace AISDE_1.Tests
         [TestMethod()]
         public void SimulatedAnnealingTestCaseGeneration()
         {
-            var nodes = 40;
+            var nodes = 300;
 
             Random random = new Random();
             List<string> lines = new List<string>();
 
             for (int i = 0; i < nodes; i++)
             {
-                var first = random.Next(200) + 1;
-                var second = random.Next(200) + 1;
+                var first = random.Next(800) + 1;
+                var second = random.Next(800) + 1;
                 var clients = random.Next(25);
 
                 string str = first.ToString() + " " + second.ToString();

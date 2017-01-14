@@ -4,17 +4,17 @@
 winexe
 C#
 .cs
-C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\obj\Debug\
+C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\obj\Release\
 AISDE_1
 none
 false
-DEBUG;TRACE
+TRACE
 C:\Users\Paweł Kulig\Desktop\Studia\AISDE\AISDE_1\AISDE_1\AISDE_1\App.xaml
 4-1503748454
 
-21111626455
+211002108970
 16-401402287
 DirectedEdgePropertiesWindow.xaml;GraphDisplayWindow.xaml;MainWindow.xaml;UndirectedEdgePropertiesWindow.xaml;
 
-False
+True
 
